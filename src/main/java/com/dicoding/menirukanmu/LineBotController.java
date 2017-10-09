@@ -105,6 +105,8 @@ public class LineBotController
                     .build()
                     .getProfile(userId)
                     .execute();
+            if(response.body().getStatusMessage().equalsIgnoreCase("not found"))
+                pushMessage(targetID, "Unknown user: "+message);
             pushMessage(targetID, response.body().getDisplayName()+": "+message);
         }
     }
