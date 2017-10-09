@@ -59,9 +59,9 @@ public class LineBotController
             }
         } else if (eventType.equals("message")){
             if (payload.events[0].source.type.equals("group")){
-                idTarget = payload.events[0].source.groupId;
+                idTarget = payload.events[0].source.userId;
             } else if (payload.events[0].source.type.equals("room")){
-                idTarget = payload.events[0].source.roomId;
+                idTarget = payload.events[0].source.userId;
             } else if (payload.events[0].source.type.equals("user")){
                 idTarget = payload.events[0].source.userId;
             }
