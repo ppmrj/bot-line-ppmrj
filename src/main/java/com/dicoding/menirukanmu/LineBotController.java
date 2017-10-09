@@ -7,6 +7,7 @@ import com.linecorp.bot.client.LineSignatureValidator;
 import com.linecorp.bot.model.PushMessage;
 import com.linecorp.bot.model.ReplyMessage;
 import com.linecorp.bot.model.message.TextMessage;
+import com.linecorp.bot.model.profile.UserProfileResponse;
 import com.linecorp.bot.model.response.BotApiResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -95,7 +96,12 @@ public class LineBotController
 
     private void getMessageData(String message, String targetID) throws IOException{
         if (message!=null){
-            pushMessage(targetID, message);
+            Response<UserProfileResponse> response = LineMessagingServiceBuilder
+                    .create(lChannelAccessToken)
+                    .build()
+                    .getProfile(targetID)
+                    .execute();
+            pushMessage(targetID, response.body().getDisplayName()+": "+message);
         }
     }
 
