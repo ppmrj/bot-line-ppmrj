@@ -49,6 +49,7 @@ public class LineBotController
 
         String msgText = " ";
         String idTarget = " ";
+        String userId = " ";
         String eventType = payload.events[0].type;
 
         if (eventType.equals("join")){
@@ -61,10 +62,13 @@ public class LineBotController
         } else if (eventType.equals("message")){
             if (payload.events[0].source.type.equals("group")){
                 idTarget = payload.events[0].source.groupId;
+                userId = payload.events[0].source.userId;
             } else if (payload.events[0].source.type.equals("room")){
                 idTarget = payload.events[0].source.roomId;
+                userId = payload.events[0].source.userId;
             } else if (payload.events[0].source.type.equals("user")){
                 idTarget = payload.events[0].source.userId;
+                userId = payload.events[0].source.userId;
             }
 
             if (!payload.events[0].message.type.equals("text")){
@@ -75,7 +79,7 @@ public class LineBotController
 
                 if (!msgText.contains("bot leave")){
                     try {
-                        getMessageData(msgText, idTarget);
+                        getMessageData(msgText, userId);
                     } catch (IOException e) {
                         System.out.println("Exception is raised ");
                         e.printStackTrace();
@@ -94,12 +98,12 @@ public class LineBotController
         return new ResponseEntity<String>(HttpStatus.OK);
     }
 
-    private void getMessageData(String message, String targetID) throws IOException{
+    private void getMessageData(String message, String targetID, String userId) throws IOException{
         if (message!=null){
             Response<UserProfileResponse> response = LineMessagingServiceBuilder
                     .create(lChannelAccessToken)
                     .build()
-                    .getProfile(targetID)
+                    .getProfile(userId)
                     .execute();
             pushMessage(targetID, response.body().getDisplayName()+": "+message);
         }
