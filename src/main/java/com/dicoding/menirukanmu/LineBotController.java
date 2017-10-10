@@ -293,7 +293,7 @@ public class LineBotController
                                 group.GAME_STATUS = 2;
                                 group.GAME_JUST_BEGIN = 1;
                             }
-                            else
+                            else if (group.PREGAME_TIME == 0)
                                 pushMessage(group.getId(), "Tidak ada cukup pemain untuk memulai game.");
                         }
                     } else if (group.GAME_STATUS == 2){
