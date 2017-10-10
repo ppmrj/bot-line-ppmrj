@@ -28,12 +28,12 @@ public class Group {
      * 3 = POST-GAME;
      * 0 = GAME ENDED / NO GAME;
      */
-    private int GAME_STATUS = 0;
-    private int GAME_ID = -1;
+    int GAME_STATUS = 0;
+    int GAME_ID = -1;
 
-    private int ROLES_ASSIGNED = 0;
-    private int VOTING_STARTED = 0;
-    private int GAME_JUST_BEGIN = 0;
+    int ROLES_ASSIGNED = 0;
+    int VOTING_STARTED = 0;
+    int GAME_JUST_BEGIN = 0;
 //    private int VOTING_STATUS = 0;
 
     int PREGAME_TIME = 60; // Seconds
@@ -45,15 +45,7 @@ public class Group {
 
     static Object[][] gameList = {
             {0, "Mafia"}
-    };
-
-    @Autowired
-    @Qualifier("com.linecorp.channel_secret")
-    String lChannelSecret;
-
-    @Autowired
-    @Qualifier("com.linecorp.channel_access_token")
-    String lChannelAccessToken;
+    }
 
     public Group(String id, int GAME_STATUS, int GAME_ID) {
         this.id = id;
@@ -226,35 +218,4 @@ public class Group {
         }
     }
 
-    private void votingMessage(String sourceId, ButtonsTemplate template){
-        TemplateMessage templateMessage = new TemplateMessage("Voting", template);
-        PushMessage pushMessage = new PushMessage(sourceId, templateMessage);
-        try {
-            Response<BotApiResponse> response = LineMessagingServiceBuilder
-                    .create(lChannelAccessToken)
-                    .build()
-                    .pushMessage(pushMessage)
-                    .execute();
-            System.out.println(response.code() + " " + response.message());
-        } catch (IOException e) {
-            System.out.println("Exception is raised ");
-            e.printStackTrace();
-        }
-    }
-
-    private void pushMessage(String sourceId, String txt){
-        TextMessage textMessage = new TextMessage(txt);
-        PushMessage pushMessage = new PushMessage(sourceId,textMessage);
-        try {
-            Response<BotApiResponse> response = LineMessagingServiceBuilder
-                    .create(lChannelAccessToken)
-                    .build()
-                    .pushMessage(pushMessage)
-                    .execute();
-            System.out.println(response.code() + " " + response.message());
-        } catch (IOException e) {
-            System.out.println("Exception is raised ");
-            e.printStackTrace();
-        }
-    }
 }
