@@ -196,12 +196,12 @@ public class LineBotController
                 /************* END OF MAFIA MINIGAME ************************/
 
                 if (!msgText.contains("bot leave")){
-                    try {
-//                        getMessageData(msgText, idTarget, userId);
-                    } catch (IOException e) {
-                        System.out.println("Exception is raised ");
-                        e.printStackTrace();
-                    }
+//                    try {
+////                        getMessageData(msgText, idTarget, userId);
+//                    } catch (IOException e) {
+//                        System.out.println("Exception is raised ");
+//                        e.printStackTrace();
+//                    }
                 } else {
                     if (payload.events[0].source.type.equals("group")){
                         leaveGR(payload.events[0].source.groupId, "group");
