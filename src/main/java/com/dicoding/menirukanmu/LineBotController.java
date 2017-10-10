@@ -166,6 +166,9 @@ public class LineBotController
                         }
                     }
                     if (msgText.equalsIgnoreCase("/main mafia")) {
+                        if(userId == null){
+                            pushMessage(groupid, "Kamu belum mengupdate versi linemu ke yang paling baru. Update linemu terlebih dahulu.");
+                        }
                         if (currentGroup != null) {
                             if (currentGroup.getGAME_STATUS() == 0) {
                                 User user = getUserProfile(userId);
@@ -203,6 +206,9 @@ public class LineBotController
 
                     }
                     if (msgText.equalsIgnoreCase("/join")) {
+                        if(userId == null){
+                            pushMessage(groupid, "Kamu belum mengupdate versi linemu ke yang paling baru. Update linemu terlebih dahulu.");
+                        }
                         if (currentGroup != null) {
                             if (currentGroup.getGAME_STATUS() == 0) {
                                 pushMessage(groupid, "Belum ada permainan yang dibuat. Ketik /listgame untuk melihat game yang tersedia.");
@@ -333,13 +339,14 @@ public class LineBotController
                                 pushMessage(group.getId(), "Game mafia dimulai dengan "+group.playerList.size()+" pemain");
                                 group.GAME_STATUS = 2;
                                 group.GAME_JUST_BEGIN = 1;
-                                group.PREGAME_TIME = 60;
+                                group.PREGAME_TIME = 120;
                             }
                             else if (group.PREGAME_TIME == 0){
                                 pushMessage(group.getId(), "Tidak ada cukup pemain untuk memulai game.");
                                 group.GAME_STATUS = 0;
                                 group.GAME_ID = -1;
                                 group.playerList.clear();
+                                group.PREGAME_TIME = 120;
                             }
 
                         }
@@ -428,11 +435,7 @@ public class LineBotController
                     .getProfile(userId)
                     .execute();
             if(!response.message().equalsIgnoreCase("not found")){
-                if(response.body().getUserId() == null){
-                    return new User("0", "Client not updated");
-                } else {
-                    return new User(response.body().getUserId(), response.body().getDisplayName());
-                }
+                return new User(response.body().getUserId(), response.body().getDisplayName());
             } else {
                 return null;
             }

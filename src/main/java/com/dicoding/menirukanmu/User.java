@@ -9,7 +9,7 @@ public class User {
     private String id;
     private String name;
     private int role;
-    private String status;
+    private String status = "";
     int voted;
 
     static Object[][][] roles = {
