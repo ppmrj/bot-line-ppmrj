@@ -16,9 +16,6 @@ import retrofit2.Response;
 import java.io.IOException;
 import java.util.*;
 
-/**
- * Created by Asus on 10/10/2017.
- */
 public class Group {
     private String id;
     /**

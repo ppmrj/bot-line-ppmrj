@@ -174,7 +174,7 @@ public class LineBotController
                             } else {
                                 Group group = new Group(groupid, 1, 0);
                                 User user = new User(userId, userProfile.body().getDisplayName());
-                                currentGroup.addPlayerToList(user);
+                                group.addPlayerToList(user);
                                 groups.add(group);
                                 pushMessage(groupid, userProfile.body().getDisplayName() + " telah memulai permainan Mafia. Ketik /join untuk mengikuti. Game akan dimulai dalam 3 menit.");
                             }
