@@ -141,17 +141,20 @@ public class LineBotController
                     if (msgText.equalsIgnoreCase("/listpemain")) {
                         if (currentGroup != null) {
                             if (currentGroup.getGAME_STATUS() != 0) {
-                                String listPlayer = "";
-                                int alive = 0;
+                                StringBuilder listPlayer = new StringBuilder();
+                                int dead = 0;
                                 if (currentGroup.playerList != null) {
                                     for (User user : currentGroup.playerList) {
-                                        listPlayer += user.getName() + "\n";
-                                        if (!user.getStatus().equalsIgnoreCase("Terciduk")) {
-                                            alive++;
+                                        listPlayer.append(user.getName()).append("\n");
+                                        if(user.getStatus().equalsIgnoreCase("Terciduk")){
+                                            dead++;
                                         }
-                                        pushMessage(groupid, listPlayer);
+//                                        if (!user.getStatus().equalsIgnoreCase("Terciduk")) {
+//                                            alive++;
+//                                        }
                                     }
-                                    pushMessage(groupid, "Pemain yang masih bermain: " + alive + "/" + currentGroup.playerList.size());
+                                    pushMessage(groupid, listPlayer.toString());
+                                    pushMessage(groupid, "Pemain yang masih bermain: " + (currentGroup.playerList.size()-dead) + "/" + currentGroup.playerList.size());
                                 } else {
                                     pushMessage(groupid, "Belum ada pemain yang join.");
                                 }
@@ -373,6 +376,7 @@ public class LineBotController
                                 });
                                 pushMessage(group.getId(), "Para warga telah melakukan voting, dari hasil voting warga maka "+group.playerList.get(1).getName()+" akan diciduk karena dianggap sebagai Mafia.");
                                 group.playerList.get(0).setStatus("Terciduk");
+                                Collections.rotate(group.playerList, -1);
                                 pushMessage(group.getId(), group.playerList.get(0).getName()+ " adalah " + group.playerList.get(1).getRoleName(group.GAME_ID, group.playerList.get(1).getRole()));
                                 int count = 0;
                                 for(User user: group.playerList){
