@@ -33,7 +33,7 @@ public class Group {
     int GAME_JUST_BEGIN = 0;
 //    private int VOTING_STATUS = 0;
 
-    int PREGAME_TIME = 60; // Seconds
+    int PREGAME_TIME = 120; // Seconds
     int VOTING_TIME = 60; // Seconds
     int DELAY_TIME = 3; // Seconds
 

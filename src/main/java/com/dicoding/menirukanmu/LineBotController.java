@@ -171,7 +171,7 @@ public class LineBotController
                                         currentGroup.setGAME_ID(0);
                                         currentGroup.setGAME_STATUS(1);
                                         currentGroup.addPlayerToList(user);
-                                        pushMessage(groupid, user.getName() + " telah memulai permainan Mafia. Ketik /join untuk mengikuti. Game akan dimulai dalam 3 menit.");
+                                        pushMessage(groupid, user.getName() + " telah memulai permainan Mafia. Ketik /join untuk mengikuti. Game akan dimulai dalam "+currentGroup.PREGAME_TIME/60+" menit.");
                                         startGame(currentGroup);
                                     } else {
                                         pushMessage(groupid, "Kamu belum mengupdate versi linemu ke yang paling baru. Update linemu terlebih dahulu.");
