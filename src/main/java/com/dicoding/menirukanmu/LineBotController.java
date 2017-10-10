@@ -143,14 +143,18 @@ public class LineBotController
                             if (currentGroup.getGAME_STATUS() != 0) {
                                 String listPlayer = "";
                                 int alive = 0;
-                                for (User user : currentGroup.playerList) {
-                                    listPlayer += user.getName() + "\n";
-                                    if (!user.getStatus().equalsIgnoreCase("Terciduk")) {
-                                        alive++;
+                                if (currentGroup.playerList != null) {
+                                    for (User user : currentGroup.playerList) {
+                                        listPlayer += user.getName() + "\n";
+                                        if (!user.getStatus().equalsIgnoreCase("Terciduk")) {
+                                            alive++;
+                                        }
+                                        pushMessage(groupid, listPlayer);
                                     }
-                                    pushMessage(groupid, listPlayer);
+                                    pushMessage(groupid, "Pemain yang masih bermain: " + alive + "/" + currentGroup.playerList.size());
+                                } else {
+                                    pushMessage(groupid, "Belum ada pemain yang join.");
                                 }
-                                pushMessage(groupid, "Pemain yang masih bermain: " + alive + "/" + currentGroup.playerList.size());
                             } else {
                                 pushMessage(groupid, "Tidak ada game yang sedang dimainkan.");
                             }
@@ -387,6 +391,7 @@ public class LineBotController
                         }
                     } else if (group.GAME_STATUS == 3) {
                         pushMessage(group.getId(), "Game telah berakhir.");
+                        group.playerList.clear();
                     }
                 }
             }, 0, 1000);
@@ -403,8 +408,8 @@ public class LineBotController
     }
 
     private Boolean checkIfUserJoined(String userId, ArrayList<User> users){
-        for (User user : users){
-            if(users.contains(user)){
+        for (User user : users) {
+            if (user.getId().equalsIgnoreCase(userId)) {
                 return true;
             }
         }
