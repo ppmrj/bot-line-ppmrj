@@ -148,6 +148,7 @@ public class LineBotController
                                     if (!user.getStatus().equalsIgnoreCase("Terciduk")) {
                                         alive++;
                                     }
+                                    pushMessage(groupid, listPlayer);
                                 }
                                 pushMessage(groupid, "Pemain yang masih bermain: " + alive + "/" + currentGroup.playerList.size());
                             } else {
