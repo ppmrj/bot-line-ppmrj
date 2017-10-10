@@ -145,7 +145,11 @@ public class LineBotController
                                 int dead = 0;
                                 if (currentGroup.playerList != null) {
                                     for (User user : currentGroup.playerList) {
-                                        listPlayer.append(user.getName()).append("\n");
+                                        if (currentGroup.GAME_STATUS != 2) {
+                                            listPlayer.append(user.getName()).append("\n");
+                                        } else {
+                                            listPlayer.append(user.getName()).append(" ").append(user.getRole()).append("\n");
+                                        }
                                         if(user.getStatus().equalsIgnoreCase("Terciduk")){
                                             dead++;
                                         }
