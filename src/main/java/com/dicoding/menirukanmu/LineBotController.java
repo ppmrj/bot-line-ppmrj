@@ -153,50 +153,66 @@ public class LineBotController
                             System.out.println("Group unregistered.");
                         }
                     }
-                    try {
-                        Response<UserProfileResponse> userProfile = LineMessagingServiceBuilder
-                                .create(lChannelAccessToken)
-                                .build()
-                                .getProfile(userId)
-                                .execute();
-                        if (msgText.equalsIgnoreCase("/main mafia")) {
-                            if (currentGroup != null) {
-                                if (currentGroup.getGAME_STATUS() == 0) {
-                                    currentGroup.setGAME_ID(0);
-                                    currentGroup.setGAME_STATUS(1);
-                                    User user = new User(userId, userProfile.body().getDisplayName());
+                    if (msgText.equalsIgnoreCase("/main mafia")) {
+                        if (currentGroup != null) {
+                            if (currentGroup.getGAME_STATUS() == 0) {
+                                currentGroup.setGAME_ID(0);
+                                currentGroup.setGAME_STATUS(1);
+                                User user = getUserProfile(userId);
+                                if(user != null){
                                     currentGroup.addPlayerToList(user);
-                                    pushMessage(groupid, userProfile.body().getDisplayName() + " telah memulai permainan Mafia. Ketik /join untuk mengikuti. Game akan dimulai dalam 3 menit.");
+                                    pushMessage(groupid, user.getName() + " telah memulai permainan Mafia. Ketik /join untuk mengikuti. Game akan dimulai dalam 3 menit.");
                                     startGame(currentGroup);
                                 } else {
-                                    pushMessage(groupid, "Permainan " + Group.gameList[currentGroup.getGAME_ID()] + " sedang berjalan.");
+                                    pushMessage(groupid, "Kamu belum menambahkan bot sebagai teman. Silahkan tambahkan bot sebagai teman dahulu.");
                                 }
                             } else {
-                                Group group = new Group(groupid, 1, 0);
-                                User user = new User(userId, userProfile.body().getDisplayName());
+                                pushMessage(groupid, "Permainan " + Group.gameList[currentGroup.getGAME_ID()][1].toString() + " sedang berjalan.");
+                            }
+                        } else {
+                            Group group = new Group(groupid, 1, 0);
+                            User user = getUserProfile(userId);
+                            if (user != null) {
                                 group.addPlayerToList(user);
                                 groups.add(group);
-                                pushMessage(groupid, userProfile.body().getDisplayName() + " telah memulai permainan Mafia. Ketik /join untuk mengikuti. Game akan dimulai dalam 3 menit.");
+                                pushMessage(groupid, user.getName() + " telah memulai permainan Mafia. Ketik /join untuk mengikuti. Game akan dimulai dalam 3 menit.");
+                            } else {
+                                pushMessage(groupid, "Kamu belum menambahkan bot sebagai teman. Silahkan tambahkan bot sebagai teman dahulu.");
                             }
-
                         }
-                        if (msgText.equalsIgnoreCase("/join")) {
-                            if (currentGroup != null) {
-                                if (currentGroup.getGAME_STATUS() == 0) {
-                                    pushMessage(groupid, "Belum ada permainan yang dibuat. Ketik /listgame untuk melihat game yang tersedia.");
-                                } else {
+
+                    }
+                    if (msgText.equalsIgnoreCase("/join")) {
+                        if (currentGroup != null) {
+                            if (currentGroup.getGAME_STATUS() == 0) {
+                                pushMessage(groupid, "Belum ada permainan yang dibuat. Ketik /listgame untuk melihat game yang tersedia.");
+                            } else {
+                                User user = getUserProfile(userId);
+                                if (user != null) {
+                                    if(checkIfUserJoined(userId, currentGroup.playerList)){
+                                        pushMessage(groupid, "Kamu sudah tergabung ke dalam game, "+user.getName());
+                                    }
                                     int gameId = currentGroup.getGAME_ID();
-                                    User user = new User(userId, userProfile.body().getDisplayName());
                                     currentGroup.addPlayerToList(user);
-                                    pushMessage(groupid, userProfile.body().getDisplayName() + " bergabung ke permainan " + Group.gameList[gameId] +
+                                    pushMessage(groupid, user.getName() + " bergabung ke permainan " + Group.gameList[gameId] +
                                             "\n\n" + currentGroup.playerList.size() + " pemain telah tergabung.");
+                                } else {
+                                    pushMessage(groupid, "Kamu belum menambahkan bot sebagai teman. Silahkan tambahkan bot sebagai teman dahulu.");
                                 }
                             }
                         }
-                    } catch (IOException e) {
-                        pushMessage(groupid, "Perintah gagal dijalankan. Pastikan kamu sudah menambahkan bot ini sebagai teman.");
-                        e.printStackTrace();
                     }
+//                    try {
+//                        Response<UserProfileResponse> userProfile = LineMessagingServiceBuilder
+//                                .create(lChannelAccessToken)
+//                                .build()
+//                                .getProfile(userId)
+//                                .execute();
+//
+//                    } catch (IOException e) {
+//                        pushMessage(groupid, "Perintah gagal dijalankan. Pastikan kamu sudah menambahkan bot ini sebagai teman.");
+//                        e.printStackTrace();
+//                    }
                 }
 
                 /************* END OF MAFIA MINIGAME ************************/
@@ -292,9 +308,14 @@ public class LineBotController
                                 pushMessage(group.getId(), "Game mafia dimulai dengan "+group.playerList.size()+" pemain");
                                 group.GAME_STATUS = 2;
                                 group.GAME_JUST_BEGIN = 1;
+                                group.PREGAME_TIME = 60;
                             }
-                            else if (group.PREGAME_TIME == 0)
+                            else if (group.PREGAME_TIME == 0){
                                 pushMessage(group.getId(), "Tidak ada cukup pemain untuk memulai game.");
+                                group.GAME_STATUS = 0;
+                                group.GAME_ID = -1;
+                            }
+
                         }
                     } else if (group.GAME_STATUS == 2){
                         if (group.GAME_JUST_BEGIN == 1){
@@ -369,6 +390,25 @@ public class LineBotController
             }
         }
         return false;
+    }
+
+    private User getUserProfile(String userId){
+        try {
+            Response<UserProfileResponse> response = LineMessagingServiceBuilder
+                    .create(lChannelAccessToken)
+                    .build()
+                    .getProfile(userId)
+                    .execute();
+            if(response.message().equalsIgnoreCase("not found")){
+                return new User(response.body().getUserId(), response.body().getDisplayName());
+            } else {
+                return null;
+            }
+        } catch (IOException e) {
+            System.out.println("Exception is raised ");
+            e.printStackTrace();
+        }
+        return null;
     }
 
     private void getMessageData(String message, String targetID, String userId) throws IOException{
