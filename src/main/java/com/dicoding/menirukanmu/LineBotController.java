@@ -60,7 +60,6 @@ public class LineBotController
         String userId = " ";
         String eventType = payload.events[0].type;
 
-
        if (eventType.equals("join")){
             if (payload.events[0].source.type.equals("group")){
                 replyToUser(payload.events[0].replyToken, "Hello Group");
@@ -160,10 +159,10 @@ public class LineBotController
                     if (msgText.equalsIgnoreCase("/main mafia")) {
                         if (currentGroup != null) {
                             if (currentGroup.getGAME_STATUS() == 0) {
-                                currentGroup.setGAME_ID(0);
-                                currentGroup.setGAME_STATUS(1);
                                 User user = getUserProfile(userId);
                                 if(user != null){
+                                    currentGroup.setGAME_ID(0);
+                                    currentGroup.setGAME_STATUS(1);
                                     currentGroup.addPlayerToList(user);
                                     pushMessage(groupid, user.getName() + " telah memulai permainan Mafia. Ketik /join untuk mengikuti. Game akan dimulai dalam 3 menit.");
                                     startGame(currentGroup);
@@ -403,7 +402,7 @@ public class LineBotController
                     .build()
                     .getProfile(userId)
                     .execute();
-            if(response.message().equalsIgnoreCase("not found")){
+            if(!response.message().equalsIgnoreCase("not found")){
                 return new User(response.body().getUserId(), response.body().getDisplayName());
             } else {
                 return null;
