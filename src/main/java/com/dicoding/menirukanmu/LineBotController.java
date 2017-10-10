@@ -194,11 +194,12 @@ public class LineBotController
                                 if (user != null) {
                                     if(checkIfUserJoined(userId, currentGroup.playerList)){
                                         pushMessage(groupid, "Kamu sudah tergabung ke dalam game, "+user.getName());
+                                    } else {
+                                        int gameId = currentGroup.getGAME_ID();
+                                        currentGroup.addPlayerToList(user);
+                                        pushMessage(groupid, user.getName() + " bergabung ke permainan " + Group.gameList[gameId][1].toString() +
+                                                "\n\n" + currentGroup.playerList.size() + " pemain telah tergabung.");
                                     }
-                                    int gameId = currentGroup.getGAME_ID();
-                                    currentGroup.addPlayerToList(user);
-                                    pushMessage(groupid, user.getName() + " bergabung ke permainan " + Group.gameList[gameId] +
-                                            "\n\n" + currentGroup.playerList.size() + " pemain telah tergabung.");
                                 } else {
                                     pushMessage(groupid, "Kamu belum menambahkan bot sebagai teman. Silahkan tambahkan bot sebagai teman dahulu.");
                                 }
@@ -317,6 +318,7 @@ public class LineBotController
                                 pushMessage(group.getId(), "Tidak ada cukup pemain untuk memulai game.");
                                 group.GAME_STATUS = 0;
                                 group.GAME_ID = -1;
+                                group.playerList.clear();
                             }
 
                         }
