@@ -102,6 +102,15 @@ public class LineBotController
                         groups.add(group);
                     }
 
+                    if(msgText.equalsIgnoreCase("/sendpostback")){
+
+                    }
+
+                    /**
+                     * Game logic
+                     */
+                    Group currentGroup = searchGroupById(groupid);
+
                     if (msgText.equalsIgnoreCase("/credit")) {
                         pushMessage(groupid, "Bot PPM RJ" +
                                 "\n" +
@@ -116,11 +125,6 @@ public class LineBotController
                         }
                         pushMessage(groupid, "Untuk memulai game gunakan /main <nama game>.");
                     }
-
-                    /**
-                     * Game logic
-                     */
-                    Group currentGroup = searchGroupById(groupid);
                     if (msgText.equalsIgnoreCase("/berhenti")) {
                         if (currentGroup != null) {
                             if (currentGroup.getGAME_STATUS() != 0) {
