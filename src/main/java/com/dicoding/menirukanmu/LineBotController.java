@@ -142,23 +142,20 @@ public class LineBotController
                         if (currentGroup != null) {
                             if (currentGroup.getGAME_STATUS() != 0) {
                                 StringBuilder listPlayer = new StringBuilder();
-                                int dead = 0;
+                                int alive = 0;
                                 if (currentGroup.playerList != null) {
-                                    for (User user : currentGroup.playerList) {
+                                    for (User user : currentGroup.playerList) { 
                                         if (currentGroup.GAME_STATUS != 2) {
                                             listPlayer.append(user.getName()).append("\n");
                                         } else {
                                             listPlayer.append(user.getName()).append(" ").append(user.getRole()).append("\n");
                                         }
-                                        if(user.getStatus().equalsIgnoreCase("Terciduk")){
-                                            dead++;
+                                        if(!user.getStatus().equalsIgnoreCase("Terciduk")){
+                                            alive++;
                                         }
-//                                        if (!user.getStatus().equalsIgnoreCase("Terciduk")) {
-//                                            alive++;
-//                                        }
                                     }
                                     pushMessage(groupid, listPlayer.toString());
-                                    pushMessage(groupid, "Pemain yang masih bermain: " + (currentGroup.playerList.size()-dead) + "/" + currentGroup.playerList.size());
+                                    pushMessage(groupid, "Pemain yang masih bermain: " + alive + "/" + currentGroup.playerList.size());
                                 } else {
                                     pushMessage(groupid, "Belum ada pemain yang join.");
                                 }
@@ -181,7 +178,9 @@ public class LineBotController
                                         currentGroup.setGAME_ID(0);
                                         currentGroup.setGAME_STATUS(1);
                                         currentGroup.addPlayerToList(user);
-                                        pushMessage(groupid, user.getName() + " telah memulai permainan Mafia. Ketik /join untuk mengikuti. Game akan dimulai dalam "+currentGroup.PREGAME_TIME/60+" menit.");
+                                        pushMessage(groupid, user.getName() + " telah memulai permainan Mafia. Ketik /join untuk mengikuti. Game akan dimulai dalam "+currentGroup.PREGAME_TIME/60+" menit." +
+                                                "\n" +
+                                                "Minimal pemain: "+Group.gameList[currentGroup.GAME_ID][2]);
                                         startGame(currentGroup);
                                     } else {
                                         pushMessage(groupid, "Kamu belum mengupdate versi linemu ke yang paling baru. Update linemu terlebih dahulu.");
@@ -339,7 +338,7 @@ public class LineBotController
                                 pushMessage(group.getId(), "Game akan dimulai dalam waktu 30 detik. Ketik /join untuk mengikuti.");
                             else if (group.PREGAME_TIME == 10)
                                 pushMessage(group.getId(), "Game akan dimulai dalam waktu 10 detik. Ketik /join untuk mengikuti.");
-                            else if (group.PREGAME_TIME == 0 && group.playerList.size() >= 5){
+                            else if (group.PREGAME_TIME == 0 && group.playerList.size() >= (Integer) Group.gameList[group.GAME_ID][2]){
                                 pushMessage(group.getId(), "Game mafia dimulai dengan "+group.playerList.size()+" pemain");
                                 group.GAME_STATUS = 2;
                                 group.GAME_JUST_BEGIN = 1;

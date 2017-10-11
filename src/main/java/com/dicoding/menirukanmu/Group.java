@@ -41,7 +41,7 @@ public class Group {
     ArrayList<User> playerList = new ArrayList<User>();
 
     static Object[][] gameList = {
-            {0, "Mafia"}
+            {0, "Mafia", 4, 20} // ID, Game name, Minimum player, Maximum player
     };
 
     public Group(String id, int GAME_STATUS, int GAME_ID) {
