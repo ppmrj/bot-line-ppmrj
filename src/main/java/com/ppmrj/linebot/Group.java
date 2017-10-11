@@ -26,7 +26,7 @@ public class Group {
     int ROLLING_TIME = 30;
     int DELAY_TIME = 3; // Seconds
 
-    String MAP_URL = "https://res.cloudinary.com/biglebomb/image/upload/v1507717846/mapulartangga.jpg";
+    String MAP_URL = "https://res.cloudinary.com/biglebomb/image/upload/v1507747592/mapulartangga2_ji2t3c.jpg";
 
     ArrayList<User> playerList = new ArrayList<User>();
 

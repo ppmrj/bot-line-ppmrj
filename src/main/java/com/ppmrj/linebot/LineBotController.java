@@ -431,16 +431,32 @@ public class LineBotController
                                             System.out.println("WIDTH: "+w+" HEIGHT: "+h);
                                             BufferedImage combined = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
 
+                                            int lastPosX=0, lastPosY=0, currentPosX=0, currentPosY=0, playerCount=0;
+
                                             Graphics graphics = combined.getGraphics();
                                             graphics.drawImage(map, 0, 0, null);
                                             for(int i=0; i<currentGroup.playerList.size(); i++){
                                                 playerAvatar[i] = resize(new URL(currentGroup.playerList.get(i).getPictureUrl()), new Dimension((map.getWidth()/10)/ 2, (map.getHeight()/10) / 2));
-                                                System.out.println(currentGroup.playerList.get(i).getName()+"'s Coordinate: X: "+getImageCoordinateFromPosition(currentGroup.playerList.get(i).getPosition(), map)[0]
-                                                +" || Y: "+getImageCoordinateFromPosition(currentGroup.playerList.get(i).getPosition(), map)[1]);
-                                                graphics.drawImage(playerAvatar[i],
-                                                        getImageCoordinateFromPosition(currentGroup.playerList.get(i).getPosition(), map)[0],
-                                                        getImageCoordinateFromPosition(currentGroup.playerList.get(i).getPosition(), map)[1],
-                                                        null);
+                                                currentPosX = getImageCoordinateFromPosition(currentGroup.playerList.get(i).getPosition(), map)[0];
+                                                currentPosY = getImageCoordinateFromPosition(currentGroup.playerList.get(i).getPosition(), map)[1];
+                                                System.out.println(currentGroup.playerList.get(i).getName()+"'s Coordinate: X: "+currentPosX
+                                                +" || Y: "+currentPosY);
+
+                                                if(lastPosX == currentPosX && lastPosY == currentPosY && playerCount == 1){
+                                                    graphics.drawImage(playerAvatar[i], currentPosX+((map.getWidth()/10)/2), currentPosY, null);
+                                                    playerCount++;
+                                                } else if(lastPosX == currentPosX && lastPosY == currentPosY && playerCount == 2){
+                                                    graphics.drawImage(playerAvatar[i], currentPosX, currentPosY+((map.getHeight()/10)/2), null);
+                                                    playerCount++;
+                                                } else if(lastPosX == currentPosX && lastPosY == currentPosY && playerCount == 3){
+                                                    graphics.drawImage(playerAvatar[i], currentPosX+((map.getWidth()/10)/2), currentPosY+((map.getHeight()/10)/2), null);
+                                                    playerCount++;
+                                                } else {
+                                                    graphics.drawImage(playerAvatar[i], currentPosX, currentPosY, null);
+                                                    playerCount++;
+                                                }
+                                                lastPosX = currentPosX;
+                                                lastPosY = currentPosY;
                                             }
                                             File finalFile = new File("final.png");
                                             ImageIO.write(combined, "PNG", finalFile);
@@ -828,16 +844,22 @@ public class LineBotController
         int pos;
 
         if(checkPosition(position).equalsIgnoreCase("asc")){
-            if(position > 9){
+            if(position > 10){
                 pos = Integer.parseInt(String.valueOf(position).substring(1));
-                x = width*pos;
+                if(pos == 0)
+                    x = width*9;
+                else
+                    x = width*pos-1;
             } else {
-                x = width*position;
+                x = width*position-1;
             }
         }
         else{
             pos = Integer.parseInt(String.valueOf(position).substring(1));
-            x = width*(10-pos);
+            if(pos == 0)
+                x = 0;
+            else
+                x = width*pos+1;
         }
         y = height*getPositionRow(position);
 
