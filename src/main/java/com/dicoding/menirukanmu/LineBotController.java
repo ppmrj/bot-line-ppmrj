@@ -1,8 +1,9 @@
 
 package com.dicoding.menirukanmu;
 
+import com.dicoding.menirukanmu.Responses.InfoResponse;
+import com.dicoding.menirukanmu.Responses.RegistrasiResponse;
 import com.google.gson.Gson;
-import com.linecorp.bot.client.LineMessagingService;
 import com.linecorp.bot.client.LineMessagingServiceBuilder;
 import com.linecorp.bot.client.LineSignatureValidator;
 import com.linecorp.bot.model.PushMessage;
@@ -37,6 +38,21 @@ public class LineBotController
     @Autowired
     @Qualifier("com.linecorp.channel_access_token")
     String lChannelAccessToken;
+
+    @RequestMapping(value="/newregistration", method=RequestMethod.POST)
+    public ResponseEntity<String> newRegistration(
+            @RequestBody String infoSantri
+    ){
+        if(infoSantri != null && infoSantri.length() > 0){
+            System.out.println("Data santri: "+infoSantri);
+        }
+
+        Gson gson = new Gson();
+        RegistrasiResponse registrasiResponse = gson.fromJson(infoSantri, RegistrasiResponse.class);
+
+        pushMessage(groups.get(0).getId(), "Santri baru dengan nama: "+registrasiResponse.nama+" telah melakukan pendaftaran di website. ID Pendaftara: "+registrasiResponse.id);
+        return new ResponseEntity<String>(HttpStatus.OK);
+    }
 
     @RequestMapping(value="/sendinfo", method=RequestMethod.POST)
     public ResponseEntity<String> info(
