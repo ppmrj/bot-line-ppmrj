@@ -167,7 +167,7 @@ public class LineBotController
                         for (int i = 0; i < Group.gameList.length; i++) {
                             replyToUser(replyToken, Group.gameList[i][1].toString() + "\n");
                         }
-                        replyToUser(replyToken, "Untuk memulai game gunakan \n/main <nama game>.");
+                        pushMessage(groupid, "Untuk memulai game gunakan \n/main <nama game>.");
                     }
                     if (msgText.equalsIgnoreCase("/berhenti")) {
                         if (currentGroup != null) {
@@ -558,19 +558,6 @@ public class LineBotController
                             pushMessage(group.getId(), "Pemain pertama adalah "+group.playerList.get(0).getName());
                         }
                         group.GAME_JUST_BEGIN = 0;
-                        if(group.ROLLING_TIME == 10){
-                            pushMessage(group.getId(), currentPlayer.getName()+" silahkan mengocok dadu dengan /kocokdadu.");
-                        } else if(group.ROLLING_TIME == 5) {
-                            pushMessage(group.getId(), currentPlayer.getName()+" silahkan mengocok dadu dengan /kocokdadu. Waktu tinggal 5 detik.");
-                        } else if(group.ROLLING_TIME == 2) {
-                            pushMessage(group.getId(), currentPlayer.getName()+" silahkan mengocok dadu dengan /kocokdadu. Waktu tinggal 2 detik.");
-                        } else if(group.ROLLING_TIME == 0) {
-                            if(currentPlayer.getDiceRollStatus() == 0){
-                                pushMessage(group.getId(), currentPlayer.getName()+" gagal mengocok dadu dalam batas waktu yang ditentukan.");
-                            }
-                            group.ROLLING_TIME = 10;
-                            Collections.rotate(group.playerList, -1);
-                        }
                         if(currentPlayer.getDiceRollStatus() == 1) {
                             pushMessage(group.getId(), currentPlayer.getName() + " telah mengocok dadu dan hasilnya adalah: " + currentPlayer.getDiceNumber());
                             currentPlayer.setPosition(currentPlayer.getPosition() + currentPlayer.getDiceNumber());
@@ -581,14 +568,28 @@ public class LineBotController
                             } else if (currentPlayer.getPosition() == 100) {
                                 pushMessage(group.getId(), currentPlayer.getName() + " berhasil memenangkan game karena mencapai kotak nomor 100.");
                                 group.GAME_STATUS = 3;
-                            } else {
+                            } else if (currentPlayer.getPosition() < 100){
                                 pushMessage(group.getId(), currentPlayer.getName() + " maju " + currentPlayer.getDiceNumber() + " langkah ke kotak nomor" + currentPlayer.getPosition());
                             }
                             currentPlayer.setDiceRollStatus(0);
-                            group.ROLLING_TIME = 10;
+                            group.ROLLING_TIME = 30;
                             Collections.rotate(group.playerList, -1);
+                        } else {
+                            if(group.ROLLING_TIME == 30){
+                                pushMessage(group.getId(), currentPlayer.getName()+" silahkan mengocok dadu dengan /kocokdadu.");
+                            } else if(group.ROLLING_TIME == 5) {
+                                pushMessage(group.getId(), currentPlayer.getName()+" silahkan mengocok dadu dengan /kocokdadu. Waktu tinggal 5 detik.");
+                            } else if(group.ROLLING_TIME == 2) {
+                                pushMessage(group.getId(), currentPlayer.getName()+" silahkan mengocok dadu dengan /kocokdadu. Waktu tinggal 2 detik.");
+                            } else if(group.ROLLING_TIME == 0) {
+                                if(currentPlayer.getDiceRollStatus() == 0){
+                                    pushMessage(group.getId(), currentPlayer.getName()+" gagal mengocok dadu dalam batas waktu yang ditentukan.");
+                                }
+                                group.ROLLING_TIME = 30;
+                                Collections.rotate(group.playerList, -1);
+                            }
+                            group.ROLLING_TIME--;
                         }
-                        group.ROLLING_TIME--;
                     } else if(group.GAME_STATUS == 3){
                         pushMessage(group.getId(), "Game telah berakhir.");
                         group.playerList.clear();
