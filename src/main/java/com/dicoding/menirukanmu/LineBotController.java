@@ -34,7 +34,7 @@ public class LineBotController
     @Autowired
     @Qualifier("com.linecorp.channel_secret")
     String lChannelSecret;
-    
+
     @Autowired
     @Qualifier("com.linecorp.channel_access_token")
     String lChannelAccessToken;
@@ -71,11 +71,11 @@ public class LineBotController
 
     @RequestMapping(value="/callback", method=RequestMethod.POST)
     public ResponseEntity<String> callback(
-        @RequestHeader("X-Line-Signature") String aXLineSignature,
-        @RequestBody String aPayload)
+            @RequestHeader("X-Line-Signature") String aXLineSignature,
+            @RequestBody String aPayload)
     {
         final String text=String.format("The Signature is: %s",
-            (aXLineSignature!=null && aXLineSignature.length() > 0) ? aXLineSignature : "N/A");
+                (aXLineSignature!=null && aXLineSignature.length() > 0) ? aXLineSignature : "N/A");
         System.out.println(text);
         final boolean valid=new LineSignatureValidator(lChannelSecret.getBytes()).validateSignature(aPayload.getBytes(), aXLineSignature);
         System.out.println("The signature is: " + (valid ? "valid" : "tidak valid"));
@@ -91,7 +91,7 @@ public class LineBotController
         String userId = " ";
         String eventType = payload.events[0].type;
 
-       if (eventType.equals("join")){
+        if (eventType.equals("join")){
             if (payload.events[0].source.type.equals("group")){
                 replyToUser(payload.events[0].replyToken, "Hello Group");
             }
@@ -189,7 +189,7 @@ public class LineBotController
                                 StringBuilder listPlayer = new StringBuilder();
                                 int alive = 0;
                                 if (currentGroup.playerList != null) {
-                                    for (User user : currentGroup.playerList) { 
+                                    for (User user : currentGroup.playerList) {
                                         if (currentGroup.GAME_STATUS != 2) {
                                             listPlayer.append(user.getName()).append("\n");
                                         } else {
@@ -217,16 +217,15 @@ public class LineBotController
                         }
                         if(currentGroup != null){
                             if(currentGroup.GAME_STATUS == 0) {
-                                User user = getUserProfile(userId){
-                                    if(user != null){
-                                        currentGroup.GAME_STATUS = 1;
-                                        currentGroup.GAME_ID = 1;
-                                        currentGroup.addPlayerToList(user);
-                                        pushMessage(groupid, user.getName() + " telah memulai permainan "+Group.gameList[currentGroup.GAME_ID][1].toString()+". Ketik /join untuk mengikuti. Game akan dimulai dalam "+currentGroup.PREGAME_TIME/60+" menit." +
-                                                "\n" +
-                                                "Minimal pemain: "+Group.gameList[currentGroup.GAME_ID][2]);
-                                        startGame(currentGroup);
-                                    }
+                                User user = getUserProfile(userId);
+                                if(user != null){
+                                    currentGroup.GAME_STATUS = 1;
+                                    currentGroup.GAME_ID = 1;
+                                    currentGroup.addPlayerToList(user);
+                                    pushMessage(groupid, user.getName() + " telah memulai permainan "+Group.gameList[currentGroup.GAME_ID][1].toString()+". Ketik /join untuk mengikuti. Game akan dimulai dalam "+currentGroup.PREGAME_TIME/60+" menit." +
+                                            "\n" +
+                                            "Minimal pemain: "+Group.gameList[currentGroup.GAME_ID][2]);
+                                    startGame(currentGroup);
                                 }
                             }
                         }
@@ -263,7 +262,7 @@ public class LineBotController
                                 if (!user.getId().equals("0")) {
                                     group.addPlayerToList(user);
                                     groups.add(group);
-                                    pushMessage(groupid, user.getName() + " telah memulai permainan Mafia. Ketik /join untuk mengikuti. Game akan dimulai dalam 3 menit.");
+                                    pushMessage(groupid, user.getName() + " telah memulai permainan "+Group.gameList[group.GAME_ID][1].toString()+". Ketik /join untuk mengikuti. Game akan dimulai dalam 3 menit.");
                                 } else {
                                     replyToUser(replyToken, "Kamu belum mengupdate versi linemu ke yang paling baru. Update linemu terlebih dahulu.");
                                 }
@@ -336,7 +335,7 @@ public class LineBotController
 
             }
         }
-         
+
         return new ResponseEntity<String>(HttpStatus.OK);
     }
 
@@ -624,10 +623,10 @@ public class LineBotController
         ReplyMessage replyMessage = new ReplyMessage(rToken, textMessage);
         try {
             Response<BotApiResponse> response = LineMessagingServiceBuilder
-                .create(lChannelAccessToken)
-                .build()
-                .replyMessage(replyMessage)
-                .execute();
+                    .create(lChannelAccessToken)
+                    .build()
+                    .replyMessage(replyMessage)
+                    .execute();
             System.out.println("Reply Message: " + response.code() + " " + response.message());
         } catch (IOException e) {
             System.out.println("Exception is raised ");
@@ -656,10 +655,10 @@ public class LineBotController
         PushMessage pushMessage = new PushMessage(sourceId,textMessage);
         try {
             Response<BotApiResponse> response = LineMessagingServiceBuilder
-            .create(lChannelAccessToken)
-            .build()
-            .pushMessage(pushMessage)
-            .execute();
+                    .create(lChannelAccessToken)
+                    .build()
+                    .pushMessage(pushMessage)
+                    .execute();
             System.out.println(response.code() + " " + response.message());
         } catch (IOException e) {
             System.out.println("Exception is raised ");
@@ -671,17 +670,17 @@ public class LineBotController
         try {
             if (type.equals("group")){
                 Response<BotApiResponse> response = LineMessagingServiceBuilder
-                    .create(lChannelAccessToken)
-                    .build()
-                    .leaveGroup(id)
-                    .execute();
+                        .create(lChannelAccessToken)
+                        .build()
+                        .leaveGroup(id)
+                        .execute();
                 System.out.println(response.code() + " " + response.message());
             } else if (type.equals("room")){
                 Response<BotApiResponse> response = LineMessagingServiceBuilder
-                    .create(lChannelAccessToken)
-                    .build()
-                    .leaveRoom(id)
-                    .execute();
+                        .create(lChannelAccessToken)
+                        .build()
+                        .leaveRoom(id)
+                        .execute();
                 System.out.println(response.code() + " " + response.message());
             }
         } catch (IOException e) {
