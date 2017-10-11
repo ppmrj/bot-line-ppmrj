@@ -875,7 +875,7 @@ public class LineBotController
         }
         y = height*getPositionRow(position);
 
-        return new int[]{x+offsetX, y+offsetY};
+        return new int[]{x+offsetX, y};
     }
 
     private String checkPosition(int position){
