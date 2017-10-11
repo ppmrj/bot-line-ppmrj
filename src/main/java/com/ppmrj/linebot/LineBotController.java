@@ -826,12 +826,19 @@ public class LineBotController
         int height = image.getHeight()/10;
         int x, y;
 
-        if(checkPosition(position).equalsIgnoreCase("asc"))
-            x = width*position;
+        if(checkPosition(position).equalsIgnoreCase("asc")){
+            int pos = Integer.parseInt(Integer.toString(position).substring(1));
+            if(pos == 0)
+                x = 0;
+             else
+                x = width*pos;
+        }
         else{
-            int pos = 11-Integer.parseInt(Integer.toString(position).substring(1));
-            System.out.println(pos);
-            x = width*pos;
+            int pos = Integer.parseInt(Integer.toString(position).substring(1));
+            if(pos == 0)
+                x = width*10;
+            else
+                x = width*(10-pos);
         }
         y = height*getPositionRow(position);
 
