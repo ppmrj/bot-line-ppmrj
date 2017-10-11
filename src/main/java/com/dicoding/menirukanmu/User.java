@@ -12,6 +12,11 @@ public class User {
     private String status = "";
     int voted;
 
+
+    private int position=0;
+    private int diceRollStatus;
+    private int diceNumber;
+
     static Object[][][] roles = {
             {
                     {0, "Mafia"},
@@ -68,6 +73,30 @@ public class User {
 
     public void setStatus(String status) {
         this.status = status;
+    }
+
+    public int getDiceRollStatus() {
+        return diceRollStatus;
+    }
+
+    public void setDiceRollStatus(int diceRollStatus) {
+        this.diceRollStatus = diceRollStatus;
+    }
+
+    public int getDiceNumber() {
+        return diceNumber;
+    }
+
+    public void setDiceNumber(int diceNumber) {
+        this.diceNumber = diceNumber;
+    }
+
+    public int getPosition() {
+        return position;
+    }
+
+    public void setPosition(int position) {
+        this.position = position;
     }
 }
 

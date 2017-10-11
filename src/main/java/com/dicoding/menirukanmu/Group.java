@@ -32,17 +32,20 @@ public class Group {
     int ROLES_ASSIGNED = 0;
     int VOTING_STARTED = 0;
     int GAME_JUST_BEGIN = 0;
-//    private int VOTING_STATUS = 0;
+
+    int MAX_STRIKE = 2;
 
     int PREGAME_TIME = 120; // Seconds
     int VOTING_TIME = 60; // Seconds
+    int ROLLING_TIME = 10;
     int DELAY_TIME = 3; // Seconds
 
     ArrayList<String> playerIDList = new ArrayList<String>();
     ArrayList<User> playerList = new ArrayList<User>();
 
     static Object[][] gameList = {
-            {0, "Mafia", 4, 20} // ID, Game name, Minimum player, Maximum player
+            {0, "Mafia", 4, 20}, // ID, Game name, Minimum player, Maximum player
+            {1, "Ular tangga", 2, 6}
     };
 
     public Group(String id, int GAME_STATUS, int GAME_ID) {
