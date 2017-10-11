@@ -379,10 +379,8 @@ public class LineBotController
                                         Graphics graphics = combined.getGraphics();
                                         graphics.drawImage(map, 0, 0, null);
                                         for(int i=0; i<currentGroup.playerList.size(); i++){
-                                            System.out.println(currentGroup.playerList.get(i).getId());
-                                            System.out.println(currentGroup.playerList.get(i).getName());
-                                            System.out.println(currentGroup.playerList.get(i).getPictureUrl());
-                                            playerAvatar[i] = resize(new URL(currentGroup.playerList.get(i).getPictureUrl()), new Dimension(map.getWidth()/4, map.getHeight()/4));
+                                            User user = getUserProfile(currentGroup.playerList.get(i).getId());
+                                            playerAvatar[i] = resize(new URL(user.getPictureUrl()), new Dimension(map.getWidth()/4, map.getHeight()/4));
                                             graphics.drawImage(playerAvatar[i],
                                                     getImageCoordinateFromPosition(currentGroup.playerList.get(i).getPosition(), map)[0],
                                                     getImageCoordinateFromPosition(currentGroup.playerList.get(i).getPosition(), map)[1],
