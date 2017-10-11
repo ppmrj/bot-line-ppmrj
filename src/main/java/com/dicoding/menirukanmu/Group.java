@@ -37,7 +37,7 @@ public class Group {
 
     int PREGAME_TIME = 120; // Seconds
     int VOTING_TIME = 60; // Seconds
-    int ROLLING_TIME = 10;
+    int ROLLING_TIME = 30;
     int DELAY_TIME = 3; // Seconds
 
     ArrayList<String> playerIDList = new ArrayList<String>();

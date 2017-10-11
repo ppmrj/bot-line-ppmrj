@@ -321,9 +321,9 @@ public class LineBotController
                                         int gameId = currentGroup.getGAME_ID();
                                         Random random = new Random();
                                         int dice = random.nextInt(6) + 1;
-                                        user.setDiceNumber(dice);
-                                        user.setDiceRollStatus(1);
-                                        pushMessage(currentGroup.getId(), user.getName()+" mengocok dadu...\n.\n.\n.\nHasilnya "+dice+".");
+                                        currentGroup.playerList.get(0).setDiceNumber(dice);
+                                        currentGroup.playerList.get(0).setDiceRollStatus(1);
+//                                        pushMessage(currentGroup.getId(), user.getName()+" mengocok dadu...\n.\n.\n.\nHasilnya "+dice+".");
                                     }
                                 } else {
                                     replyToUser(replyToken, "Kamu belum menambahkan bot sebagai teman. Silahkan tambahkan bot sebagai teman dahulu.");
