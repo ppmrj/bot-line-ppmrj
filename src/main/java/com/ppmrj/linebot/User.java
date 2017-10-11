@@ -9,6 +9,7 @@ public class User {
     private String id;
     private String name;
     private String pictureUrl;
+    private String null_placeholder = "https://res.cloudinary.com/biglebomb/image/upload/v1507740416/user-placeholder_z3jwjb.jpg";
 
     private int role;
     private String status = "";
@@ -105,7 +106,10 @@ public class User {
     }
 
     public String getPictureUrl() {
-        return pictureUrl;
+        if(pictureUrl != null)
+            return pictureUrl;
+        else
+            return null_placeholder;
     }
 
     public void setPictureUrl(String pictureUrl) {
