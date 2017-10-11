@@ -425,56 +425,59 @@ public class LineBotController
                                     if(currentGroup.GAME_STATUS != 2){
                                         pushImage(groupid, currentGroup.MAP_URL);
                                     } else {
-                                        Cloudinary cloudinary = new Cloudinary(ObjectUtils.asMap(
-                                                "cloud_name", "biglebomb",
-                                                "api_key", "914939112251975",
-                                                "api_secret", "mTgyRz24r8OTMOYDRSPiCC2vQ4o"));
-                                        try {
-                                            BufferedImage map = ImageIO.read(new URL(currentGroup.MAP_URL));
+                                        if(currentGroup.ANTI_SPAM_MAP != 0){
+                                            Cloudinary cloudinary = new Cloudinary(ObjectUtils.asMap(
+                                                    "cloud_name", "biglebomb",
+                                                    "api_key", "914939112251975",
+                                                    "api_secret", "mTgyRz24r8OTMOYDRSPiCC2vQ4o"));
+                                            try {
+                                                BufferedImage map = ImageIO.read(new URL(currentGroup.MAP_URL));
 
-                                            BufferedImage[] playerAvatar = new BufferedImage[currentGroup.playerList.size()];
-                                            int w = map.getWidth();
-                                            int h = map.getHeight();
-                                            System.out.println("WIDTH: "+w+" HEIGHT: "+h);
-                                            BufferedImage combined = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
+                                                BufferedImage[] playerAvatar = new BufferedImage[currentGroup.playerList.size()];
+                                                int w = map.getWidth();
+                                                int h = map.getHeight();
+                                                System.out.println("WIDTH: "+w+" HEIGHT: "+h);
+                                                BufferedImage combined = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
 
-                                            int lastPosX=0, lastPosY=0, currentPosX=0, currentPosY=0, playerCount=0;
+                                                int lastPosX=0, lastPosY=0, currentPosX=0, currentPosY=0, playerCount=0;
 
-                                            Graphics graphics = combined.getGraphics();
-                                            graphics.drawImage(map, 0, 0, null);
-                                            for(int i=0; i<currentGroup.playerList.size(); i++){
-                                                playerAvatar[i] = resize(new URL(currentGroup.playerList.get(i).getPictureUrl()), new Dimension((map.getWidth()/10)/ 2, (map.getHeight()/10) / 2));
-                                                int[] imageCoordinate = getImageCoordinateFromPosition(currentGroup.playerList.get(i).getPosition(), map, 2, 5);
-                                                currentPosX = imageCoordinate[0];
-                                                currentPosY = imageCoordinate[1];
-                                                System.out.println(currentGroup.playerList.get(i).getName()+"'s Coordinate: X: "+currentPosX
-                                                +" || Y: "+currentPosY);
+                                                Graphics graphics = combined.getGraphics();
+                                                graphics.drawImage(map, 0, 0, null);
+                                                for(int i=0; i<currentGroup.playerList.size(); i++){
+                                                    playerAvatar[i] = resize(new URL(currentGroup.playerList.get(i).getPictureUrl()), new Dimension((map.getWidth()/10)/ 2, (map.getHeight()/10) / 2));
+                                                    int[] imageCoordinate = getImageCoordinateFromPosition(currentGroup.playerList.get(i).getPosition(), map, 2, 5);
+                                                    currentPosX = imageCoordinate[0];
+                                                    currentPosY = imageCoordinate[1];
+                                                    System.out.println(currentGroup.playerList.get(i).getName()+"'s Coordinate: X: "+currentPosX
+                                                            +" || Y: "+currentPosY);
 
-                                                if(lastPosX == currentPosX && lastPosY == currentPosY && playerCount == 1){
-                                                    graphics.drawImage(playerAvatar[i], currentPosX+((map.getWidth()/10)/2), currentPosY, null);
-                                                    playerCount++;
-                                                } else if(lastPosX == currentPosX && lastPosY == currentPosY && playerCount == 2){
-                                                    graphics.drawImage(playerAvatar[i], currentPosX, currentPosY+((map.getHeight()/10)/2), null);
-                                                    playerCount++;
-                                                } else if(lastPosX == currentPosX && lastPosY == currentPosY && playerCount == 3){
-                                                    graphics.drawImage(playerAvatar[i], currentPosX+((map.getWidth()/10)/2), currentPosY+((map.getHeight()/10)/2), null);
-                                                    playerCount++;
-                                                } else {
-                                                    graphics.drawImage(playerAvatar[i], currentPosX, currentPosY, null);
-                                                    playerCount++;
+                                                    if(lastPosX == currentPosX && lastPosY == currentPosY && playerCount == 1){
+                                                        graphics.drawImage(playerAvatar[i], currentPosX+((map.getWidth()/10)/2), currentPosY, null);
+                                                        playerCount++;
+                                                    } else if(lastPosX == currentPosX && lastPosY == currentPosY && playerCount == 2){
+                                                        graphics.drawImage(playerAvatar[i], currentPosX, currentPosY+((map.getHeight()/10)/2), null);
+                                                        playerCount++;
+                                                    } else if(lastPosX == currentPosX && lastPosY == currentPosY && playerCount == 3){
+                                                        graphics.drawImage(playerAvatar[i], currentPosX+((map.getWidth()/10)/2), currentPosY+((map.getHeight()/10)/2), null);
+                                                        playerCount++;
+                                                    } else {
+                                                        graphics.drawImage(playerAvatar[i], currentPosX, currentPosY, null);
+                                                        playerCount++;
+                                                    }
+                                                    lastPosX = currentPosX;
+                                                    lastPosY = currentPosY;
                                                 }
-                                                lastPosX = currentPosX;
-                                                lastPosY = currentPosY;
+                                                File finalFile = new File("final.png");
+                                                ImageIO.write(combined, "PNG", finalFile);
+                                                Map uploadResult = cloudinary.uploader().upload(finalFile, ObjectUtils.emptyMap());
+                                                Gson gson2 = new GsonBuilder().create();
+                                                String json = gson2.toJson(uploadResult);
+                                                ImageResponse imageResponse = gson.fromJson(json, ImageResponse.class);
+                                                pushImage(groupid, imageResponse.secure_url);
+                                                currentGroup.ANTI_SPAM_MAP=30;
+                                            } catch (IOException e) {
+                                                e.printStackTrace();
                                             }
-                                            File finalFile = new File("final.png");
-                                            ImageIO.write(combined, "PNG", finalFile);
-                                            Map uploadResult = cloudinary.uploader().upload(finalFile, ObjectUtils.emptyMap());
-                                            Gson gson2 = new GsonBuilder().create();
-                                            String json = gson2.toJson(uploadResult);
-                                            ImageResponse imageResponse = gson.fromJson(json, ImageResponse.class);
-                                            pushImage(groupid, imageResponse.secure_url);
-                                        } catch (IOException e) {
-                                            e.printStackTrace();
                                         }
                                     }
                                 }
@@ -540,7 +543,6 @@ public class LineBotController
             timer.scheduleAtFixedRate(new TimerTask() {
                 @Override
                 public void run() {
-
                     int total_mafia = group.playerList.size() / 3;
                     int total_sheriff = group.playerList.size() / 3;
                     int total_doctor = group.playerList.size() / 3;
@@ -780,6 +782,7 @@ public class LineBotController
                             }
                             group.ROLLING_TIME--;
                         }
+                        group.ANTI_SPAM_MAP--;
                     } else if(group.GAME_STATUS == 3){
                         pushMessage(group.getId(), "Game telah berakhir.");
                         group.playerList.clear();
@@ -871,7 +874,7 @@ public class LineBotController
             if(pos == 0)
                 x = 0;
             else
-                x = width*(pos+1);
+                x = width*(10-pos);
         }
         y = height*getPositionRow(position);
 
