@@ -303,6 +303,31 @@ public class LineBotController
                             }
                         }
                     }
+                    if(msgText.equalsIgnoreCase("/kocokdadu")){
+                        if(userId == null){
+                            replyToUser(replyToken, "Kamu belum mengupdate versi linemu ke yang paling baru. Update linemu terlebih dahulu.");
+                        }
+                        if (currentGroup != null) {
+                            if (currentGroup.getGAME_STATUS() == 0) {
+                                replyToUser(replyToken, "Belum ada permainan yang dibuat. Ketik /listgame untuk melihat game yang tersedia.");
+                            } else {
+                                User user = getUserProfile(userId);
+                                if (user != null) {
+                                    if(!user.getId().equalsIgnoreCase(currentGroup.playerList.get(0).getId())){
+                                        replyToUser(replyToken, "Sekarang bukan giliranmu, "+user.getName()+".");
+                                    } else {
+                                        int gameId = currentGroup.getGAME_ID();
+                                        Random random = new Random();
+                                        int dice = random.nextInt(6) + 1;
+                                        user.setDiceNumber(dice);
+                                        pushMessage(currentGroup.getId(), user.getName()+" mengocok dadu...\n.\n.\n.\nHasilnya "+dice+".");
+                                    }
+                                } else {
+                                    replyToUser(replyToken, "Kamu belum menambahkan bot sebagai teman. Silahkan tambahkan bot sebagai teman dahulu.");
+                                }
+                            }
+                        }
+                    }
 //                    try {
 //                        Response<UserProfileResponse> userProfile = LineMessagingServiceBuilder
 //                                .create(lChannelAccessToken)
