@@ -339,8 +339,13 @@ public class LineBotController
                                 User user = getUserProfile(userId);
                                 if (user != null) {
                                     if(currentGroup.GAME_STATUS != 2){
-                                        replyToUser(replyToken, "Memulai permainan...");
-                                        currentGroup.GAME_STATUS = 2;
+                                        if (checkGameRequirement(currentGroup)) {
+                                            replyToUser(replyToken, "Memulai game...");
+                                            currentGroup.GAME_STATUS = 2;
+                                            currentGroup.GAME_JUST_BEGIN = 1;
+                                        } else {
+                                            replyToUser(replyToken, "Belum ada cukup pemain untuk memulai game.");
+                                        }
                                     } else {
                                         replyToUser(replyToken, "Game telah dimulai.");
                                     }
@@ -357,6 +362,8 @@ public class LineBotController
                         if (currentGroup != null) {
                             if (currentGroup.getGAME_STATUS() == 0) {
                                 replyToUser(replyToken, "Belum ada permainan yang dibuat. Ketik /listgame untuk melihat game yang tersedia.");
+                            } else if(currentGroup.GAME_STATUS != 2){
+                                replyToUser(replyToken, "Game belum dimulai, tunggu hingga game dimulai.");
                             } else {
                                 User user = getUserProfile(userId);
                                 if (user != null) {
@@ -386,6 +393,8 @@ public class LineBotController
                             if (currentGroup != null) {
                                 if (currentGroup.getGAME_STATUS() == 0) {
                                     replyToUser(replyToken, "Belum ada permainan yang dibuat. Ketik /listgame untuk melihat game yang tersedia.");
+                                } else if(currentGroup.GAME_STATUS != 2){
+                                    replyToUser(replyToken, "Game belum dimulai, tunggu hingga game dimulai.");
                                 } else {
                                     User user = getUserProfile(userId);
                                     if (user != null) {
@@ -782,11 +791,11 @@ public class LineBotController
         }
     }
 
-    public Boolean checkGameRequirement(int gameId, Group group){
-        if(group.playerList.size() >= (int) Group.gameList[gameId][2]){
-            group.GAME_STATUS = 2;
-            group.GAME_JUST_BEGIN = 1;
+    public Boolean checkGameRequirement(Group group){
+        if(group.playerList.size() >= (int) Group.gameList[group.GAME_ID][2]){
+            return true;
         }
+        return false;
     }
 
     public int[] getSnakeData(int position, int[][] snakeArray){
