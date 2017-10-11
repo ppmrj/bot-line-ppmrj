@@ -665,6 +665,11 @@ public class LineBotController
                                 if(currentPlayer.strike == group.MAX_STRIKE){
                                     removePlayerFromGame(currentPlayer.getId(), group.playerList);
                                     pushMessage(group.getId(), currentPlayer.getName()+" dikeluarkan dari game karena sudah tidak mengocok dadu sebanyak "+group.MAX_STRIKE+" kali.");
+                                    if(group.playerList.size() < 2){
+                                        group.GAME_STATUS = 3;
+                                        pushMessage(group.getId(), "Tidak ada cukup pemain untuk melanjutkan game.");
+                                    }
+
                                 }
                                 if(currentPlayer.getDiceNumber() == 6){
                                     group.ROLLING_TIME = 30;

@@ -19,7 +19,7 @@ public class Group {
     int VOTING_STARTED = 0;
     int GAME_JUST_BEGIN = 0;
 
-    int MAX_STRIKE = 2;
+    int MAX_STRIKE = 3;
 
     int PREGAME_TIME = 120; // Seconds
     int VOTING_TIME = 60; // Seconds
