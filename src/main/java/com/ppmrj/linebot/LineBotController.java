@@ -852,7 +852,7 @@ public class LineBotController
 
     private int[] getImageCoordinateFromPosition(int position, BufferedImage image, int offsetX, int offsetY){
         int width = (image.getWidth()/10);
-        int height = (image.getWidth()/10);
+        int height = (image.getHeight()/10);
         int x, y;
         int pos;
         if(checkPosition(position).equalsIgnoreCase("asc")){
