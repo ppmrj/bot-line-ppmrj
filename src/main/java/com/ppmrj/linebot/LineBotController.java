@@ -822,20 +822,18 @@ public class LineBotController
     }
 
     private int[] getImageCoordinateFromPosition(int position, BufferedImage image){
-        int width = image.getWidth();
-        int height = image.getHeight();
+        int width = image.getWidth()/10;
+        int height = image.getHeight()/10;
         int x, y;
 
         if(checkPosition(position).equalsIgnoreCase("asc"))
-            x = (width/10)*position;
+            x = width*position;
         else{
-            String pos = String.valueOf(position);
+            int pos = 11-Integer.parseInt(Integer.toString(position).substring(1));
             System.out.println(pos);
-            char[] posArray = pos.toCharArray();
-            System.out.println(posArray[1]);
-            x = (width/10)*(11-(int)posArray[1]);
+            x = width*pos;
         }
-        y = (height/10)*getPositionRow(position);
+        y = height*getPositionRow(position);
 
         return new int[]{x, y};
     }
