@@ -388,8 +388,8 @@ public class LineBotController
                                                         null);
                                             }
                                         }
-                                        File finalFile = new File("final.jpg");
-                                        ImageIO.write(combined, "JPG", finalFile);
+                                        File finalFile = new File("final.png");
+                                        ImageIO.write(combined, "PNG", finalFile);
                                         Map uploadResult = cloudinary.uploader().upload(finalFile, ObjectUtils.emptyMap());
                                         Gson gson2 = new GsonBuilder().create();
                                         String json = gson2.toJson(uploadResult);
