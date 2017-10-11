@@ -320,6 +320,7 @@ public class LineBotController
                                         Random random = new Random();
                                         int dice = random.nextInt(6) + 1;
                                         user.setDiceNumber(dice);
+                                        user.setDiceRollStatus(1);
                                         pushMessage(currentGroup.getId(), user.getName()+" mengocok dadu...\n.\n.\n.\nHasilnya "+dice+".");
                                     }
                                 } else {
@@ -566,24 +567,28 @@ public class LineBotController
                         } else if(group.ROLLING_TIME == 0) {
                             if(currentPlayer.getDiceRollStatus() == 0){
                                 pushMessage(group.getId(), currentPlayer.getName()+" gagal mengocok dadu dalam batas waktu yang ditentukan.");
-                            } else if(currentPlayer.getDiceRollStatus() == 1){
-                                pushMessage(group.getId(), currentPlayer.getName()+" telah mengocok dadu dan hasilnya adalah: "+currentPlayer.getDiceNumber());
-                                currentPlayer.setPosition(currentPlayer.getPosition()+currentPlayer.getDiceNumber());
-                                if(currentPlayer.getPosition() > 100){
-                                    int mundur = currentPlayer.getPosition() - 100;
-                                    currentPlayer.setPosition(currentPlayer.getPosition() - mundur);
-                                    pushMessage(group.getId(), "Hasil kocokan dadu melebihi 100 karenanya" + currentPlayer.getName()+" mundur lagi ke "+currentPlayer.getPosition());
-                                }
-                                else if(currentPlayer.getPosition() == 100){
-                                    pushMessage(group.getId(), currentPlayer.getName()+" berhasil memenangkan game karena mencapai kotak nomor 100.");
-                                    group.GAME_STATUS = 3;
-                                } else {
-                                    pushMessage(group.getId(), currentPlayer.getName()+" maju "+currentPlayer.getDiceNumber()+" langkah ke kotak nomor"+currentPlayer.getPosition());
-                                }
                             }
                             group.ROLLING_TIME = 10;
                             Collections.rotate(group.playerList, -1);
                         }
+                        if(currentPlayer.getDiceRollStatus() == 1) {
+                            pushMessage(group.getId(), currentPlayer.getName() + " telah mengocok dadu dan hasilnya adalah: " + currentPlayer.getDiceNumber());
+                            currentPlayer.setPosition(currentPlayer.getPosition() + currentPlayer.getDiceNumber());
+                            if (currentPlayer.getPosition() > 100) {
+                                int mundur = currentPlayer.getPosition() - 100;
+                                currentPlayer.setPosition(currentPlayer.getPosition() - mundur);
+                                pushMessage(group.getId(), "Hasil kocokan dadu melebihi 100 karenanya" + currentPlayer.getName() + " mundur lagi ke " + currentPlayer.getPosition());
+                            } else if (currentPlayer.getPosition() == 100) {
+                                pushMessage(group.getId(), currentPlayer.getName() + " berhasil memenangkan game karena mencapai kotak nomor 100.");
+                                group.GAME_STATUS = 3;
+                            } else {
+                                pushMessage(group.getId(), currentPlayer.getName() + " maju " + currentPlayer.getDiceNumber() + " langkah ke kotak nomor" + currentPlayer.getPosition());
+                            }
+                            currentPlayer.setDiceRollStatus(0);
+                            group.ROLLING_TIME = 10;
+                            Collections.rotate(group.playerList, -1);
+                        }
+                        group.ROLLING_TIME--;
                     } else if(group.GAME_STATUS == 3){
                         pushMessage(group.getId(), "Game telah berakhir.");
                         group.playerList.clear();
