@@ -830,7 +830,9 @@ public class LineBotController
             x = (width/10)*position;
         else{
             String pos = String.valueOf(position);
+            System.out.println(pos);
             char[] posArray = pos.toCharArray();
+            System.out.println(posArray[1]);
             x = (width/10)*(11-(int)posArray[1]);
         }
         y = (height/10)*getPositionRow(position);
