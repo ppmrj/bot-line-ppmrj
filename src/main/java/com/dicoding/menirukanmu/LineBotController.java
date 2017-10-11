@@ -28,7 +28,7 @@ import java.util.*;
 @RequestMapping(value="/linebot")
 public class LineBotController
 {
-    ArrayList<Group> groups = new ArrayList<Group>();
+    ArrayList<Group> groups = new ArrayList<>();
 
     @Autowired
     @Qualifier("com.linecorp.channel_secret")
@@ -37,6 +37,21 @@ public class LineBotController
     @Autowired
     @Qualifier("com.linecorp.channel_access_token")
     String lChannelAccessToken;
+
+    @RequestMapping(value="/sendinfo", method=RequestMethod.POST)
+    public ResponseEntity<String> info(
+            @RequestBody String infoData
+    ){
+        if(infoData!=null && infoData.length() > 0){
+            System.out.println("Data: "+infoData);
+        }
+
+        Gson gson = new Gson();
+        InfoResponse infoResponse = gson.fromJson(infoData, InfoResponse.class);
+
+        pushMessage(groups.get(0).getId(), infoResponse.data);
+        return new ResponseEntity<String>(HttpStatus.OK);
+    }
 
     @RequestMapping(value="/callback", method=RequestMethod.POST)
     public ResponseEntity<String> callback(
@@ -95,6 +110,7 @@ public class LineBotController
                     String source = payload.events[0].source.type;
                     String userid = payload.events[0].source.userId;
                     String groupid = payload.events[0].source.groupId;
+                    String replyToken = payload.events[0].replyToken;
 
                     if (searchGroupById(groupid) == null) {
                         Group group = new Group(groupid, 0, 0);
@@ -103,6 +119,15 @@ public class LineBotController
 
                     if(msgText.equalsIgnoreCase("/sendpostback")){
 
+                    }
+
+                    if(msgText.contains("/addgrouptolist")){
+                        String[] cmd = msgText.split("\\s");
+                        if(cmd.length == 2){
+                            groups.add(new Group(groupid, cmd[1]));
+                        } else {
+                            replyToUser(replyToken, "Perintah salah. /addgrouptolist <nama>");
+                        }
                     }
 
                     /**
@@ -120,19 +145,19 @@ public class LineBotController
                     }
                     if (msgText.equalsIgnoreCase("/listgame")) {
                         for (int i = 0; i < Group.gameList.length; i++) {
-                            pushMessage(groupid, Group.gameList[i][1].toString() + "\n");
+                            replyToUser(replyToken, Group.gameList[i][1].toString() + "\n");
                         }
-                        pushMessage(groupid, "Untuk memulai game gunakan \n/main <nama game>.");
+                        replyToUser(replyToken, "Untuk memulai game gunakan \n/main <nama game>.");
                     }
                     if (msgText.equalsIgnoreCase("/berhenti")) {
                         if (currentGroup != null) {
                             if (currentGroup.getGAME_STATUS() != 0) {
                                 currentGroup.playerList.clear();
                                 currentGroup.setGAME_STATUS(0);
-                                pushMessage(groupid, "Game " + Group.gameList[currentGroup.getGAME_ID()][1].toString() + " telah diberhentikan.");
+                                replyToUser(replyToken, "Game " + Group.gameList[currentGroup.getGAME_ID()][1].toString() + " telah diberhentikan.");
                                 currentGroup.setGAME_ID(-1);
                             } else {
-                                pushMessage(groupid, "Tidak ada game yang sedang dimainkan.");
+                                replyToUser(replyToken, "Tidak ada game yang sedang dimainkan.");
                             }
                         } else {
                             System.out.println("Group unregistered.");
@@ -154,13 +179,13 @@ public class LineBotController
                                             alive++;
                                         }
                                     }
-                                    pushMessage(groupid, listPlayer.toString());
+                                    replyToUser(replyToken, listPlayer.toString());
                                     pushMessage(groupid, "Pemain yang masih bermain: " + alive + "/" + currentGroup.playerList.size());
                                 } else {
-                                    pushMessage(groupid, "Belum ada pemain yang join.");
+                                    replyToUser(replyToken, "Belum ada pemain yang join.");
                                 }
                             } else {
-                                pushMessage(groupid, "Tidak ada game yang sedang dimainkan.");
+                                replyToUser(replyToken, "Tidak ada game yang sedang dimainkan.");
                             }
                         } else {
                             System.out.println("Group unregistered.");
@@ -168,7 +193,7 @@ public class LineBotController
                     }
                     if (msgText.equalsIgnoreCase("/main mafia")) {
                         if(userId == null){
-                            pushMessage(groupid, "Kamu belum mengupdate versi linemu ke yang paling baru. Update linemu terlebih dahulu.");
+                            replyToUser(replyToken, "Kamu belum mengupdate versi linemu ke yang paling baru. Update linemu terlebih dahulu.");
                         }
                         if (currentGroup != null) {
                             if (currentGroup.getGAME_STATUS() == 0) {
@@ -183,13 +208,13 @@ public class LineBotController
                                                 "Minimal pemain: "+Group.gameList[currentGroup.GAME_ID][2]);
                                         startGame(currentGroup);
                                     } else {
-                                        pushMessage(groupid, "Kamu belum mengupdate versi linemu ke yang paling baru. Update linemu terlebih dahulu.");
+                                        replyToUser(replyToken, "Kamu belum mengupdate versi linemu ke yang paling baru. Update linemu terlebih dahulu.");
                                     }
                                 } else {
-                                    pushMessage(groupid, "Kamu belum menambahkan bot sebagai teman. Silahkan tambahkan bot sebagai teman dahulu.");
+                                    replyToUser(replyToken, "Kamu belum menambahkan bot sebagai teman. Silahkan tambahkan bot sebagai teman dahulu.");
                                 }
                             } else {
-                                pushMessage(groupid, "Permainan " + Group.gameList[currentGroup.getGAME_ID()][1].toString() + " sedang berjalan.");
+                                replyToUser(replyToken, "Permainan " + Group.gameList[currentGroup.getGAME_ID()][1].toString() + " sedang berjalan.");
                             }
                         } else {
                             Group group = new Group(groupid, 1, 0);
@@ -200,27 +225,27 @@ public class LineBotController
                                     groups.add(group);
                                     pushMessage(groupid, user.getName() + " telah memulai permainan Mafia. Ketik /join untuk mengikuti. Game akan dimulai dalam 3 menit.");
                                 } else {
-                                    pushMessage(groupid, "Kamu belum mengupdate versi linemu ke yang paling baru. Update linemu terlebih dahulu.");
+                                    replyToUser(replyToken, "Kamu belum mengupdate versi linemu ke yang paling baru. Update linemu terlebih dahulu.");
                                 }
                             } else {
-                                pushMessage(groupid, "Kamu belum menambahkan bot sebagai teman. Silahkan tambahkan bot sebagai teman dahulu.");
+                                replyToUser(replyToken, "Kamu belum menambahkan bot sebagai teman. Silahkan tambahkan bot sebagai teman dahulu.");
                             }
                         }
 
                     }
                     if (msgText.equalsIgnoreCase("/join")) {
                         if(userId == null){
-                            pushMessage(groupid, "Kamu belum mengupdate versi linemu ke yang paling baru. Update linemu terlebih dahulu.");
+                            replyToUser(replyToken, "Kamu belum mengupdate versi linemu ke yang paling baru. Update linemu terlebih dahulu.");
                         }
                         if (currentGroup != null) {
                             if (currentGroup.getGAME_STATUS() == 0) {
-                                pushMessage(groupid, "Belum ada permainan yang dibuat. Ketik /listgame untuk melihat game yang tersedia.");
+                                replyToUser(replyToken, "Belum ada permainan yang dibuat. Ketik /listgame untuk melihat game yang tersedia.");
                             } else {
                                 User user = getUserProfile(userId);
                                 if (user != null) {
                                     if (!user.getId().equals("0")) {
                                         if(checkIfUserJoined(userId, currentGroup.playerList)){
-                                            pushMessage(groupid, "Kamu sudah tergabung ke dalam game, "+user.getName());
+                                            replyToUser(replyToken, "Kamu sudah tergabung ke dalam game, "+user.getName());
                                         } else {
                                             int gameId = currentGroup.getGAME_ID();
                                             currentGroup.addPlayerToList(user);
@@ -228,10 +253,10 @@ public class LineBotController
                                                     "\n\n" + currentGroup.playerList.size() + " pemain telah tergabung.");
                                         }
                                     } else {
-                                        pushMessage(groupid, "Kamu belum mengupdate versi linemu ke yang paling baru. Update linemu terlebih dahulu.");
+                                        replyToUser(replyToken, "Kamu belum mengupdate versi linemu ke yang paling baru. Update linemu terlebih dahulu.");
                                     }
                                 } else {
-                                    pushMessage(groupid, "Kamu belum menambahkan bot sebagai teman. Silahkan tambahkan bot sebagai teman dahulu.");
+                                    replyToUser(replyToken, "Kamu belum menambahkan bot sebagai teman. Silahkan tambahkan bot sebagai teman dahulu.");
                                 }
                             }
                         }
@@ -406,6 +431,7 @@ public class LineBotController
                     } else if (group.GAME_STATUS == 3) {
                         pushMessage(group.getId(), "Game telah berakhir.");
                         group.playerList.clear();
+                        group.GAME_STATUS = 0;
                     }
                 }
             }, 0, 1000);

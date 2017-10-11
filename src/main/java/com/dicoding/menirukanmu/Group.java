@@ -18,6 +18,7 @@ import java.util.*;
 
 public class Group {
     private String id;
+    private String label;
     /**
      * Game status
      * 1 = PRE-GAME;
@@ -48,6 +49,11 @@ public class Group {
         this.id = id;
         this.GAME_STATUS = GAME_STATUS;
         this.GAME_ID = GAME_ID;
+    }
+
+    public Group(String id, String label) {
+        this.id = id;
+        this.label = label;
     }
 
     public String getId() {
