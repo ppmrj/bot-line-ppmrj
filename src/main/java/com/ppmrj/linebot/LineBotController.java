@@ -213,8 +213,7 @@ public class LineBotController
                                                 alive++;
                                             }
                                         }
-                                        replyToUser(replyToken, listPlayer.toString());
-                                        pushMessage(groupid, "Pemain yang masih bermain: " + alive + "/" + currentGroup.playerList.size());
+                                        replyToUser(replyToken, listPlayer.toString()+"\nPemain yang masih bermain: " + alive + "/" + currentGroup.playerList.size()+".");
                                     } else if(currentGroup.GAME_ID == 1) {
                                         for(User user : currentGroup.playerList){
                                             if(currentGroup.GAME_STATUS != 2){
@@ -223,8 +222,7 @@ public class LineBotController
                                                 listPlayer.append(user.getName()).append(" - Posisi: ").append(user.getPosition()).append("\n");
                                             }
                                         }
-                                        replyToUser(replyToken, listPlayer.toString());
-                                        pushMessage(groupid, "Jumlah pemain: "+currentGroup.playerList.size());
+                                        replyToUser(replyToken, listPlayer.toString()+"\nJumlah pemain: "+currentGroup.playerList.size()+".");
                                     }
                                 } else {
                                     replyToUser(replyToken, "Belum ada pemain yang join.");
@@ -853,8 +851,8 @@ public class LineBotController
     }
 
     private int[] getImageCoordinateFromPosition(int position, BufferedImage image, int offsetX, int offsetY){
-        int width = (image.getWidth()/10)+offsetX;
-        int height = (image.getWidth()/10)+offsetY;
+        int width = (image.getWidth()/10);
+        int height = (image.getWidth()/10);
         int x, y;
         int pos;
         if(checkPosition(position).equalsIgnoreCase("asc")){
@@ -877,7 +875,7 @@ public class LineBotController
         }
         y = height*getPositionRow(position);
 
-        return new int[]{x, y};
+        return new int[]{x+offsetX, y+offsetY};
     }
 
     private String checkPosition(int position){
