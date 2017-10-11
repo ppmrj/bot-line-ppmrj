@@ -401,19 +401,19 @@ public class LineBotController
                                 }
                             }
                         }
-                        if(msgText.equalsIgnoreCase("/map2")) {
-                            if (userId == null) {
-                                replyToUser(replyToken, "Kamu belum mengupdate versi linemu ke yang paling baru. Update linemu terlebih dahulu.");
-                            }
-                            if (currentGroup != null) {
-                                if (currentGroup.GAME_STATUS == 0) {
-                                    replyToUser(replyToken, "Belum ada permainan yang dibuat. Ketik /listgame untuk melihat game yang tersedia.");
+                    }
+                    if(msgText.equalsIgnoreCase("/map2")) {
+                        if (userId == null) {
+                            replyToUser(replyToken, "Kamu belum mengupdate versi linemu ke yang paling baru. Update linemu terlebih dahulu.");
+                        }
+                        if (currentGroup != null) {
+                            if (currentGroup.GAME_STATUS == 0) {
+                                replyToUser(replyToken, "Belum ada permainan yang dibuat. Ketik /listgame untuk melihat game yang tersedia.");
+                            } else {
+                                if (currentGroup.GAME_ID != 1) {
+                                    replyToUser(replyToken, "Game ular tangga sedang tidak dimainkan.");
                                 } else {
-                                    if (currentGroup.GAME_ID != 1) {
-                                        replyToUser(replyToken, "Game ular tangga sedang tidak dimainkan.");
-                                    } else {
-                                        pushImage(groupid, currentGroup.MAP_URL);
-                                    }
+                                    pushImage(groupid, currentGroup.MAP_URL);
                                 }
                             }
                         }
