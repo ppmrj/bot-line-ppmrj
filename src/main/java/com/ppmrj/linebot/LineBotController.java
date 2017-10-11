@@ -732,7 +732,7 @@ public class LineBotController
                                 if (currentPlayer.getPosition() > 100) {
                                     int mundur = currentPlayer.getPosition() - 100;
                                     currentPlayer.setPosition(currentPlayer.getPosition() - mundur);
-                                    pushMessage(group.getId(), "Hasil kocokan dadu melebihi 100 karenanya" + currentPlayer.getName() + " mundur lagi ke " + currentPlayer.getPosition());
+                                    pushMessage(group.getId(), "Hasil kocokan dadu untuk maju melebihi 100 karenanya" + currentPlayer.getName() + " mundur lagi ke " + currentPlayer.getPosition());
                                 } else if (currentPlayer.getPosition() == 100) {
                                     pushMessage(group.getId(), currentPlayer.getName() + " berhasil memenangkan game karena mencapai kotak nomor 100.");
                                     group.GAME_STATUS = 3;
@@ -750,11 +750,9 @@ public class LineBotController
                         } else {
                             if(group.ROLLING_TIME == 29){
                                 if(currentPlayer.getDiceNumber() == 6)
-                                    pushMessage(group.getId(), currentPlayer.getName()+" silahkan mengocok dadu kembali dengan /kocokdadu.");
+                                    pushMessage(group.getId(), currentPlayer.getName()+" silahkan mengocok dadu kembali dengan \n/kocokdadu.\nWaktu 30 detik.");
                                 else
-                                    pushMessage(group.getId(), currentPlayer.getName()+" silahkan mengocok dadu dengan /kocokdadu.");
-                            } else if(group.ROLLING_TIME == 5) {
-                                pushMessage(group.getId(), currentPlayer.getName()+" silahkan mengocok dadu dengan /kocokdadu. Waktu tinggal 5 detik.");
+                                    pushMessage(group.getId(), currentPlayer.getName()+" silahkan mengocok dadu dengan \n/kocokdadu.\nWaktu 30 detik.");
                             }
                             else if(group.ROLLING_TIME == 0) {
                                 if(currentPlayer.getDiceRollStatus() == 0){
@@ -781,6 +779,13 @@ public class LineBotController
                     }
                 }
             },0, 1000);
+        }
+    }
+
+    public Boolean checkGameRequirement(int gameId, Group group){
+        if(group.playerList.size() >= (int) Group.gameList[gameId][2]){
+            group.GAME_STATUS = 2;
+            group.GAME_JUST_BEGIN = 1;
         }
     }
 
