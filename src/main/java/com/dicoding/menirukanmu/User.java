@@ -8,9 +8,13 @@ import java.util.ArrayList;
 public class User {
     private String id;
     private String name;
+    private String pictureUrl;
+
     private int role;
     private String status = "";
+
     int voted;
+    int strike;
 
 
     private int position=0;
@@ -30,9 +34,10 @@ public class User {
 
     ArrayList<String> playingGroupList = new ArrayList<String>();
 
-    public User(String id, String name) {
+    public User(String id, String name, String pictureUrl) {
         this.id = id;
         this.name = name;
+        this.pictureUrl = pictureUrl;
     }
 
     public String getId() {
@@ -97,6 +102,14 @@ public class User {
 
     public void setPosition(int position) {
         this.position = position;
+    }
+
+    public String getPictureUrl() {
+        return pictureUrl;
+    }
+
+    public void setPictureUrl(String pictureUrl) {
+        this.pictureUrl = pictureUrl;
     }
 }
 

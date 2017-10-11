@@ -40,12 +40,14 @@ public class Group {
     int ROLLING_TIME = 30;
     int DELAY_TIME = 3; // Seconds
 
+    String MAP_URL = "http://res.cloudinary.com/biglebomb/image/upload/v1507717846/mapulartangga.jpg";
+
     ArrayList<String> playerIDList = new ArrayList<String>();
     ArrayList<User> playerList = new ArrayList<User>();
 
     static Object[][] gameList = {
             {0, "Mafia", 4, 20, 120, 60}, // ID, Game name, Minimum player, Maximum player
-            {1, "Ular tangga", 2, 6, 120, 10}
+            {1, "Ular tangga", 2, 4, 120, 10}
     };
 
     public Group(String id, int GAME_STATUS, int GAME_ID) {

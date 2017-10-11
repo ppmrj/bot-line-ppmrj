@@ -1,15 +1,20 @@
 
 package com.dicoding.menirukanmu;
 
+import com.cloudinary.Cloudinary;
+import com.cloudinary.utils.ObjectUtils;
+import com.dicoding.menirukanmu.Responses.ImageResponse;
 import com.dicoding.menirukanmu.Responses.InfoResponse;
 import com.dicoding.menirukanmu.Responses.RegistrasiResponse;
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.linecorp.bot.client.LineMessagingServiceBuilder;
 import com.linecorp.bot.client.LineSignatureValidator;
 import com.linecorp.bot.model.PushMessage;
 import com.linecorp.bot.model.ReplyMessage;
 import com.linecorp.bot.model.action.Action;
 import com.linecorp.bot.model.action.PostbackAction;
+import com.linecorp.bot.model.message.ImageMessage;
 import com.linecorp.bot.model.message.TemplateMessage;
 import com.linecorp.bot.model.message.TextMessage;
 import com.linecorp.bot.model.message.template.ButtonsTemplate;
@@ -22,8 +27,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import retrofit2.Response;
 
+import javax.imageio.ImageIO;
+import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 import java.util.*;
+import java.util.List;
 
 @RestController
 @RequestMapping(value="/linebot")
@@ -191,18 +202,30 @@ public class LineBotController
                                 StringBuilder listPlayer = new StringBuilder();
                                 int alive = 0;
                                 if (currentGroup.playerList != null) {
-                                    for (User user : currentGroup.playerList) {
-                                        if (currentGroup.GAME_STATUS != 2) {
-                                            listPlayer.append(user.getName()).append("\n");
-                                        } else {
-                                            listPlayer.append(user.getName()).append(" ").append(user.getRole()).append("\n");
+                                    if (currentGroup.GAME_ID == 0) {
+                                        for (User user : currentGroup.playerList) {
+                                            if (currentGroup.GAME_STATUS != 2) {
+                                                listPlayer.append(user.getName()).append("\n");
+                                            } else {
+                                                listPlayer.append(user.getName()).append(" ").append(user.getRole()).append("\n");
+                                            }
+                                            if(!user.getStatus().equalsIgnoreCase("Terciduk")){
+                                                alive++;
+                                            }
                                         }
-                                        if(!user.getStatus().equalsIgnoreCase("Terciduk")){
-                                            alive++;
+                                        replyToUser(replyToken, listPlayer.toString());
+                                        pushMessage(groupid, "Pemain yang masih bermain: " + alive + "/" + currentGroup.playerList.size());
+                                    } else if(currentGroup.GAME_ID == 1) {
+                                        for(User user : currentGroup.playerList){
+                                            if(currentGroup.GAME_STATUS != 2){
+                                                listPlayer.append(user.getName()).append("\n");
+                                            } else {
+                                                listPlayer.append(user.getName()).append(" - Posisi: ").append(user.getPosition());
+                                            }
                                         }
+                                        replyToUser(replyToken, listPlayer.toString());
+                                        pushMessage(groupid, "Jumlah pemain: "+currentGroup.playerList.size());
                                     }
-                                    replyToUser(replyToken, listPlayer.toString());
-                                    pushMessage(groupid, "Pemain yang masih bermain: " + alive + "/" + currentGroup.playerList.size());
                                 } else {
                                     replyToUser(replyToken, "Belum ada pemain yang join.");
                                 }
@@ -286,7 +309,7 @@ public class LineBotController
                                 if (user != null) {
                                     if (!user.getId().equals("0")) {
                                         if(checkIfUserJoined(userId, currentGroup.playerList)){
-                                            replyToUser(replyToken, "Kamu sudah tergabung ke dalam game, "+user.getName());
+                                            replyToUser(replyToken, "Kamu sudah tergabung ke dalam game, "+user.getName()+".");
                                         } else {
                                             int gameId = currentGroup.getGAME_ID();
                                             currentGroup.addPlayerToList(user);
@@ -323,10 +346,55 @@ public class LineBotController
                                         int dice = random.nextInt(6) + 1;
                                         currentGroup.playerList.get(0).setDiceNumber(dice);
                                         currentGroup.playerList.get(0).setDiceRollStatus(1);
-//                                        pushMessage(currentGroup.getId(), user.getName()+" mengocok dadu...\n.\n.\n.\nHasilnya "+dice+".");
                                     }
                                 } else {
                                     replyToUser(replyToken, "Kamu belum menambahkan bot sebagai teman. Silahkan tambahkan bot sebagai teman dahulu.");
+                                }
+                            }
+                        }
+                    }
+                    if(msgText.equalsIgnoreCase("/map")){
+                        if(userId == null){
+                            replyToUser(replyToken, "Kamu belum mengupdate versi linemu ke yang paling baru. Update linemu terlebih dahulu.");
+                        }
+                        if(currentGroup != null){
+                            if(currentGroup.GAME_STATUS == 0){
+                                replyToUser(replyToken, "Belum ada permainan yang dibuat. Ketik /listgame untuk melihat game yang tersedia.");
+                            } else {
+                                if(currentGroup.GAME_ID != 1 ){
+                                    replyToUser(replyToken, "Game ular tangga sedang tidak dimainkan.");
+                                } else {
+                                    Cloudinary cloudinary = new Cloudinary(ObjectUtils.asMap(
+                                            "cloud_name", "biglebomb",
+                                            "api_key", "914939112251975",
+                                            "api_secret", "mTgyRz24r8OTMOYDRSPiCC2vQ4o"));
+                                    try {
+                                        BufferedImage map = ImageIO.read(new URL(currentGroup.MAP_URL));
+
+                                        BufferedImage[] playerAvatar = new BufferedImage[currentGroup.playerList.size()];
+                                        int w = map.getWidth();
+                                        int h = map.getHeight();
+                                        BufferedImage combined = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
+
+                                        Graphics graphics = combined.getGraphics();
+                                        graphics.drawImage(map, 0, 0, null);
+                                        for(int i=0; i<currentGroup.playerList.size(); i++){
+                                            playerAvatar[i] = resize(new URL(currentGroup.playerList.get(i).getPictureUrl()), new Dimension(135, 135));
+                                            graphics.drawImage(playerAvatar[i],
+                                                    getImageCoordinateFromPosition(currentGroup.playerList.get(i).getPosition(), map)[0],
+                                                    getImageCoordinateFromPosition(currentGroup.playerList.get(i).getPosition(), map)[1],
+                                                    null);
+                                        }
+                                        File finalFile = new File("final.jpg");
+                                        ImageIO.write(combined, "JPG", finalFile);
+                                        Map uploadResult = cloudinary.uploader().upload(finalFile, ObjectUtils.emptyMap());
+                                        Gson gson2 = new GsonBuilder().create();
+                                        String json = gson2.toJson(uploadResult);
+                                        ImageResponse imageResponse = gson.fromJson(json, ImageResponse.class);
+                                        pushImage(groupid, imageResponse.url);
+                                    } catch (IOException e) {
+                                        e.printStackTrace();
+                                    }
                                 }
                             }
                         }
@@ -554,14 +622,15 @@ public class LineBotController
                         User currentPlayer = group.playerList.get(0);
                         if(group.GAME_JUST_BEGIN == 1){
                             pushMessage(group.getId(), "Game akan dimulai...");
-                            pushMessage(group.getId(), "Setiap pemain diharuskan mengocok dadu dengan batas waktu 10 detik dan maju sesuai hasil dari angka dadu." +
+                            pushMessage(group.getId(), "Setiap pemain diharuskan mengocok dadu dengan batas waktu "+Group.gameList[group.GAME_ID][4].toString()+" detik dan maju sesuai hasil dari angka dadu." +
                                     "\nApabila waktu habis maka pemain mendapat satu pelanggaran.");
                             pushMessage(group.getId(), "Jika pemain mendapatkan "+group.MAX_STRIKE+" maka dia akan otomatis dikeluarkan.");
+                            pushMessage(group.getId(), "Apabila pemain mendapatkan angka 6 saat mengocok dadu, maka dia diperbolehkan untuk mengocok dadu kembali.");
                             pushMessage(group.getId(), "Pemain pertama adalah "+group.playerList.get(0).getName());
                         }
                         group.GAME_JUST_BEGIN = 0;
                         if(currentPlayer.getDiceRollStatus() == 1) {
-                            pushMessage(group.getId(), currentPlayer.getName() + " telah mengocok dadu dan hasilnya adalah: " + currentPlayer.getDiceNumber());
+                            pushMessage(group.getId(), currentPlayer.getName() + " telah mengocok dadu dan hasilnya adalah " + currentPlayer.getDiceNumber());
                             currentPlayer.setPosition(currentPlayer.getPosition() + currentPlayer.getDiceNumber());
                             if (currentPlayer.getPosition() > 100) {
                                 int mundur = currentPlayer.getPosition() - 100;
@@ -571,24 +640,38 @@ public class LineBotController
                                 pushMessage(group.getId(), currentPlayer.getName() + " berhasil memenangkan game karena mencapai kotak nomor 100.");
                                 group.GAME_STATUS = 3;
                             } else if (currentPlayer.getPosition() < 100){
-                                pushMessage(group.getId(), currentPlayer.getName() + " maju " + currentPlayer.getDiceNumber() + " langkah ke kotak nomor" + currentPlayer.getPosition());
+                                pushMessage(group.getId(), currentPlayer.getName() + " maju " + currentPlayer.getDiceNumber() + " langkah ke kotak nomor " + currentPlayer.getPosition());
                             }
                             currentPlayer.setDiceRollStatus(0);
                             group.ROLLING_TIME = 30;
                             Collections.rotate(group.playerList, -1);
                         } else {
-                            if(group.ROLLING_TIME == 30){
-                                pushMessage(group.getId(), currentPlayer.getName()+" silahkan mengocok dadu dengan /kocokdadu.");
+                            if(group.ROLLING_TIME == 30 || group.ROLLING_TIME == 29){
+                                if(currentPlayer.getDiceNumber() == 6)
+                                    pushMessage(group.getId(), currentPlayer.getName()+" silahkan mengocok dadu kembali dengan /kocokdadu.");
+                                else
+                                    pushMessage(group.getId(), currentPlayer.getName()+" silahkan mengocok dadu dengan /kocokdadu.");
                             } else if(group.ROLLING_TIME == 5) {
                                 pushMessage(group.getId(), currentPlayer.getName()+" silahkan mengocok dadu dengan /kocokdadu. Waktu tinggal 5 detik.");
-                            } else if(group.ROLLING_TIME == 2) {
-                                pushMessage(group.getId(), currentPlayer.getName()+" silahkan mengocok dadu dengan /kocokdadu. Waktu tinggal 2 detik.");
-                            } else if(group.ROLLING_TIME == 0) {
+                            }
+//                            else if(group.ROLLING_TIME == 2) {
+//                                pushMessage(group.getId(), currentPlayer.getName()+" silahkan mengocok dadu dengan /kocokdadu. Waktu tinggal 2 detik.");
+//                            }
+                            else if(group.ROLLING_TIME == 0) {
                                 if(currentPlayer.getDiceRollStatus() == 0){
                                     pushMessage(group.getId(), currentPlayer.getName()+" gagal mengocok dadu dalam batas waktu yang ditentukan.");
+                                    currentPlayer.strike++;
                                 }
-                                group.ROLLING_TIME = 30;
-                                Collections.rotate(group.playerList, -1);
+                                if(currentPlayer.strike == group.MAX_STRIKE){
+                                    removePlayerFromGame(currentPlayer.getId(), group.playerList);
+                                    pushMessage(group.getId(), currentPlayer.getName()+" dikeluarkan dari game karena sudah tidak mengocok dadu sebanyak "+group.MAX_STRIKE+" kali.");
+                                }
+                                if(currentPlayer.getDiceNumber() == 6){
+                                    group.ROLLING_TIME = 30;
+                                } else {
+                                    group.ROLLING_TIME = 30;
+                                    Collections.rotate(group.playerList, -1);
+                                }
                             }
                             group.ROLLING_TIME--;
                         }
@@ -600,6 +683,79 @@ public class LineBotController
                 }
             },0, 1000);
         }
+    }
+
+    /**
+     * Resize Snippet
+     * @source https://stackoverflow.com/questions/18550284/java-resize-image-from-an-url
+     */
+
+    public BufferedImage resize(final URL url, final Dimension size) throws IOException{
+        final BufferedImage image = ImageIO.read(url);
+        final BufferedImage resized = new BufferedImage(size.width, size.height, BufferedImage.TYPE_INT_ARGB);
+        final Graphics2D g = resized.createGraphics();
+        g.drawImage(image, 0, 0, size.width, size.height, null);
+        g.dispose();
+        return resized;
+    }
+
+    private int[] getImageCoordinateFromPosition(int position, BufferedImage image){
+        int width = image.getWidth();
+        int height = image.getHeight();
+        int x, y;
+
+        if(checkPosition(position).equalsIgnoreCase("asc"))
+            x = (width/10)*position;
+        else{
+            String pos = String.valueOf(position);
+            char[] posArray = pos.toCharArray();
+            x = (width/10)*(11-(int)posArray[1]);
+        }
+        y = (height/10)*getPositionRow(position);
+
+        return new int[]{x, y};
+    }
+
+    private String checkPosition(int position){
+        if((position > 0 || position <= 10) || (position> 20 || position <= 30) || (position>40 || position <= 50) || (position>60 || position <= 70) || (position>80 || position<=90)){
+            return "asc";
+        }
+        else
+            return "desc";
+    }
+    private int getPositionRow(int position){
+        if(position > 0 && position <= 10){
+            return 10;
+        } else if(position > 10 && position <= 20){
+            return 9;
+        } else if(position > 20 && position <= 30){
+            return 8;
+        } else if(position > 30 && position <= 40){
+            return 7;
+        } else if(position > 40 && position <= 50){
+            return 6;
+        } else if(position > 50 && position <= 60){
+            return 5;
+        } else if(position > 60 && position <= 70){
+            return 4;
+        } else if(position > 70 && position <= 80){
+            return 3;
+        } else if(position > 80 && position <= 90){
+            return 2;
+        } else if(position > 90 && position <= 100){
+            return 1;
+        }
+        return 0;
+    }
+
+    private Boolean removePlayerFromGame(String userId, ArrayList<User> players){
+        for(int i=0; i<players.size(); i++){
+            if(players.get(i).getId().equalsIgnoreCase(userId)){
+                players.remove(i);
+                return true;
+            }
+        }
+        return false;
     }
 
     private Group searchGroupById(String groupId){
@@ -628,7 +784,7 @@ public class LineBotController
                     .getProfile(userId)
                     .execute();
             if(!response.message().equalsIgnoreCase("not found")){
-                return new User(response.body().getUserId(), response.body().getDisplayName());
+                return new User(response.body().getUserId(), response.body().getDisplayName(), response.body().getPictureUrl());
             } else {
                 return null;
             }
@@ -672,6 +828,22 @@ public class LineBotController
     private void votingMessage(String sourceId, ButtonsTemplate template){
         TemplateMessage templateMessage = new TemplateMessage("Voting", template);
         PushMessage pushMessage = new PushMessage(sourceId, templateMessage);
+        try {
+            Response<BotApiResponse> response = LineMessagingServiceBuilder
+                    .create(lChannelAccessToken)
+                    .build()
+                    .pushMessage(pushMessage)
+                    .execute();
+            System.out.println(response.code() + " " + response.message());
+        } catch (IOException e) {
+            System.out.println("Exception is raised ");
+            e.printStackTrace();
+        }
+    }
+
+    private void pushImage(String sourceId, String imageUrl){
+        ImageMessage imageMessage = new ImageMessage(imageUrl, imageUrl);
+        PushMessage pushMessage = new PushMessage(sourceId, imageMessage);
         try {
             Response<BotApiResponse> response = LineMessagingServiceBuilder
                     .create(lChannelAccessToken)
