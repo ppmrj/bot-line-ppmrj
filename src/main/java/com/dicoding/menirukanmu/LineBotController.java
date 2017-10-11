@@ -124,7 +124,13 @@ public class LineBotController
                     if(msgText.contains("/addgrouptolist")){
                         String[] cmd = msgText.split("\\s");
                         if(cmd.length == 2){
-                            groups.add(new Group(groupid, cmd[1]));
+                            Group group = searchGroupById(groupid);
+                            if(group==null){
+                                groups.add(new Group(groupid, cmd[1]));
+                                replyToUser(replyToken, "Group ini telah berhasil ditambahkan ke list dengan nama "+cmd[1]);
+                            }
+                            else
+                                replyToUser(replyToken, "Group "+cmd[1]+ " sudah ada didalam list.");
                         } else {
                             replyToUser(replyToken, "Perintah salah. /addgrouptolist <nama>");
                         }
