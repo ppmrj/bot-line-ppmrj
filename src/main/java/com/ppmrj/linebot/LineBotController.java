@@ -341,10 +341,31 @@ public class LineBotController
                                     if(!user.getId().equalsIgnoreCase(currentGroup.playerList.get(0).getId())){
                                         replyToUser(replyToken, "Sekarang bukan giliranmu, "+user.getName()+".");
                                     } else {
-                                        int gameId = currentGroup.getGAME_ID();
                                         Random random = new Random();
                                         int dice = random.nextInt(6) + 1;
                                         currentGroup.playerList.get(0).setDiceNumber(dice);
+                                        currentGroup.playerList.get(0).setDiceRollStatus(1);
+                                    }
+                                } else {
+                                    replyToUser(replyToken, "Kamu belum menambahkan bot sebagai teman. Silahkan tambahkan bot sebagai teman dahulu.");
+                                }
+                            }
+                        }
+                    }
+                    if(msgText.equalsIgnoreCase("/kocokdadu6")){
+                        if(userId == null){
+                            replyToUser(replyToken, "Kamu belum mengupdate versi linemu ke yang paling baru. Update linemu terlebih dahulu.");
+                        }
+                        if (currentGroup != null) {
+                            if (currentGroup.getGAME_STATUS() == 0) {
+                                replyToUser(replyToken, "Belum ada permainan yang dibuat. Ketik /listgame untuk melihat game yang tersedia.");
+                            } else {
+                                User user = getUserProfile(userId);
+                                if (user != null) {
+                                    if(!user.getId().equalsIgnoreCase(currentGroup.playerList.get(0).getId())){
+                                        replyToUser(replyToken, "Sekarang bukan giliranmu, "+user.getName()+".");
+                                    } else {
+                                        currentGroup.playerList.get(0).setDiceNumber(6);
                                         currentGroup.playerList.get(0).setDiceRollStatus(1);
                                     }
                                 } else {
@@ -364,36 +385,42 @@ public class LineBotController
                                 if(currentGroup.GAME_ID != 1 ){
                                     replyToUser(replyToken, "Game ular tangga sedang tidak dimainkan.");
                                 } else {
-                                    Cloudinary cloudinary = new Cloudinary(ObjectUtils.asMap(
-                                            "cloud_name", "biglebomb",
-                                            "api_key", "914939112251975",
-                                            "api_secret", "mTgyRz24r8OTMOYDRSPiCC2vQ4o"));
-                                    try {
-                                        BufferedImage map = ImageIO.read(new URL(currentGroup.MAP_URL));
+                                    if(currentGroup.GAME_STATUS != 2){
+                                        pushImage(groupid, currentGroup.MAP_URL);
+                                    } else {
+                                        Cloudinary cloudinary = new Cloudinary(ObjectUtils.asMap(
+                                                "cloud_name", "biglebomb",
+                                                "api_key", "914939112251975",
+                                                "api_secret", "mTgyRz24r8OTMOYDRSPiCC2vQ4o"));
+                                        try {
+                                            BufferedImage map = ImageIO.read(new URL(currentGroup.MAP_URL));
 
-                                        BufferedImage[] playerAvatar = new BufferedImage[currentGroup.playerList.size()];
-                                        int w = map.getWidth();
-                                        int h = map.getHeight();
-                                        BufferedImage combined = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
+                                            BufferedImage[] playerAvatar = new BufferedImage[currentGroup.playerList.size()];
+                                            int w = map.getWidth();
+                                            int h = map.getHeight();
+                                            BufferedImage combined = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
 
-                                        Graphics graphics = combined.getGraphics();
-                                        graphics.drawImage(map, 0, 0, null);
-                                        for(int i=0; i<currentGroup.playerList.size(); i++){
-                                            playerAvatar[i] = resize(new URL(currentGroup.playerList.get(i).getPictureUrl()), new Dimension(map.getWidth() / 4, map.getHeight() / 4));
-                                            graphics.drawImage(playerAvatar[i],
-                                                    getImageCoordinateFromPosition(currentGroup.playerList.get(i).getPosition(), map)[0],
-                                                    getImageCoordinateFromPosition(currentGroup.playerList.get(i).getPosition(), map)[1],
-                                                    null);
+                                            Graphics graphics = combined.getGraphics();
+                                            graphics.drawImage(map, 0, 0, null);
+                                            for(int i=0; i<currentGroup.playerList.size(); i++){
+                                                playerAvatar[i] = resize(new URL(currentGroup.playerList.get(i).getPictureUrl()), new Dimension((map.getWidth()/10)/ 4, (map.getHeight()/10) / 4));
+                                                System.out.println(currentGroup.playerList.get(i).getName()+"'s Coordinate: X: "+getImageCoordinateFromPosition(currentGroup.playerList.get(i).getPosition(), map)[0]
+                                                +" || Y: "+getImageCoordinateFromPosition(currentGroup.playerList.get(i).getPosition(), map)[1]);
+                                                graphics.drawImage(playerAvatar[i],
+                                                        getImageCoordinateFromPosition(currentGroup.playerList.get(i).getPosition(), map)[0],
+                                                        getImageCoordinateFromPosition(currentGroup.playerList.get(i).getPosition(), map)[1],
+                                                        null);
+                                            }
+                                            File finalFile = new File("final.png");
+                                            ImageIO.write(combined, "PNG", finalFile);
+                                            Map uploadResult = cloudinary.uploader().upload(finalFile, ObjectUtils.emptyMap());
+                                            Gson gson2 = new GsonBuilder().create();
+                                            String json = gson2.toJson(uploadResult);
+                                            ImageResponse imageResponse = gson.fromJson(json, ImageResponse.class);
+                                            pushImage(groupid, imageResponse.secure_url);
+                                        } catch (IOException e) {
+                                            e.printStackTrace();
                                         }
-                                        File finalFile = new File("final.png");
-                                        ImageIO.write(combined, "PNG", finalFile);
-                                        Map uploadResult = cloudinary.uploader().upload(finalFile, ObjectUtils.emptyMap());
-                                        Gson gson2 = new GsonBuilder().create();
-                                        String json = gson2.toJson(uploadResult);
-                                        ImageResponse imageResponse = gson.fromJson(json, ImageResponse.class);
-                                        pushImage(groupid, imageResponse.secure_url);
-                                    } catch (IOException e) {
-                                        e.printStackTrace();
                                     }
                                 }
                             }
@@ -453,7 +480,7 @@ public class LineBotController
 
 
     public void startGame(Group group){
-        if(group.GAME_ID == 0){
+        if(group.GAME_ID == 0) {
             Timer timer = new Timer();
             timer.scheduleAtFixedRate(new TimerTask() {
                 @Override
@@ -586,7 +613,8 @@ public class LineBotController
                     }
                 }
             }, 0, 1000);
-        } else if(group.GAME_ID == 1){
+        }
+        else if(group.GAME_ID == 1){
             Timer timer = new Timer();
             int[][] ladderArray = {
                     {3, 21},
@@ -653,19 +681,25 @@ public class LineBotController
                                 pushMessage(group.getId(), currentPlayer.getName() + " berhenti di kolom ular dan turun ke kolom nomor "+getSnakeData(currentPlayer.getPosition(), snakeArray)[1]);
                                 currentPlayer.setPosition(getSnakeData(currentPlayer.getPosition(), snakeArray)[1]);
                             }
-                            if (currentPlayer.getPosition() > 100) {
-                                int mundur = currentPlayer.getPosition() - 100;
-                                currentPlayer.setPosition(currentPlayer.getPosition() - mundur);
-                                pushMessage(group.getId(), "Hasil kocokan dadu melebihi 100 karenanya" + currentPlayer.getName() + " mundur lagi ke " + currentPlayer.getPosition());
-                            } else if (currentPlayer.getPosition() == 100) {
-                                pushMessage(group.getId(), currentPlayer.getName() + " berhasil memenangkan game karena mencapai kotak nomor 100.");
-                                group.GAME_STATUS = 3;
-                            } else if (currentPlayer.getPosition() < 100){
-                                pushMessage(group.getId(), currentPlayer.getName() + " maju " + currentPlayer.getDiceNumber() + " langkah ke kotak nomor " + currentPlayer.getPosition());
+                            else {
+                                if (currentPlayer.getPosition() > 100) {
+                                    int mundur = currentPlayer.getPosition() - 100;
+                                    currentPlayer.setPosition(currentPlayer.getPosition() - mundur);
+                                    pushMessage(group.getId(), "Hasil kocokan dadu melebihi 100 karenanya" + currentPlayer.getName() + " mundur lagi ke " + currentPlayer.getPosition());
+                                } else if (currentPlayer.getPosition() == 100) {
+                                    pushMessage(group.getId(), currentPlayer.getName() + " berhasil memenangkan game karena mencapai kotak nomor 100.");
+                                    group.GAME_STATUS = 3;
+                                } else if (currentPlayer.getPosition() < 100){
+                                    pushMessage(group.getId(), currentPlayer.getName() + " maju " + currentPlayer.getDiceNumber() + " langkah ke kotak nomor " + currentPlayer.getPosition());
+                                }
                             }
                             currentPlayer.setDiceRollStatus(0);
-                            group.ROLLING_TIME = 30;
-                            Collections.rotate(group.playerList, -1);
+                            if(currentPlayer.getDiceNumber() == 6){
+                                group.ROLLING_TIME = 30;
+                            } else {
+                                group.ROLLING_TIME = 30;
+                                Collections.rotate(group.playerList, -1);
+                            }
                         } else {
                             if(group.ROLLING_TIME == 29){
                                 if(currentPlayer.getDiceNumber() == 6)
@@ -675,9 +709,6 @@ public class LineBotController
                             } else if(group.ROLLING_TIME == 5) {
                                 pushMessage(group.getId(), currentPlayer.getName()+" silahkan mengocok dadu dengan /kocokdadu. Waktu tinggal 5 detik.");
                             }
-//                            else if(group.ROLLING_TIME == 2) {
-//                                pushMessage(group.getId(), currentPlayer.getName()+" silahkan mengocok dadu dengan /kocokdadu. Waktu tinggal 2 detik.");
-//                            }
                             else if(group.ROLLING_TIME == 0) {
                                 if(currentPlayer.getDiceRollStatus() == 0){
                                     pushMessage(group.getId(), currentPlayer.getName()+" gagal mengocok dadu dalam batas waktu yang ditentukan.");
@@ -690,14 +721,9 @@ public class LineBotController
                                         group.GAME_STATUS = 3;
                                         pushMessage(group.getId(), "Tidak ada cukup pemain untuk melanjutkan game.");
                                     }
-
                                 }
-                                if(currentPlayer.getDiceNumber() == 6){
-                                    group.ROLLING_TIME = 30;
-                                } else {
-                                    group.ROLLING_TIME = 30;
-                                    Collections.rotate(group.playerList, -1);
-                                }
+                                group.ROLLING_TIME = 30;
+                                Collections.rotate(group.playerList, -1);
                             }
                             group.ROLLING_TIME--;
                         }
@@ -710,11 +736,6 @@ public class LineBotController
             },0, 1000);
         }
     }
-
-    /**
-     * Resize Snippet
-     * @source https://stackoverflow.com/questions/18550284/java-resize-image-from-an-url
-     */
 
     public int[] getSnakeData(int position, int[][] snakeArray){
         for(int[] aSnakeArray : snakeArray) {
@@ -756,6 +777,10 @@ public class LineBotController
         return false;
     }
 
+    /**
+     * Resize Snippet
+     * @source https://stackoverflow.com/questions/18550284/java-resize-image-from-an-url
+     */
     public BufferedImage resize(final URL url, final Dimension size) throws IOException{
         final BufferedImage image = ImageIO.read(url);
         final BufferedImage resized = new BufferedImage(size.width, size.height, BufferedImage.TYPE_INT_ARGB);
