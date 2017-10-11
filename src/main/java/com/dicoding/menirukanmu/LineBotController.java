@@ -164,9 +164,11 @@ public class LineBotController
                                 "Dibuat oleh Divisi IT PPM RJ.");
                     }
                     if (msgText.equalsIgnoreCase("/listgame")) {
+                        StringBuilder listGame = new StringBuilder();
                         for (int i = 0; i < Group.gameList.length; i++) {
-                            replyToUser(replyToken, Group.gameList[i][1].toString() + "\n");
+                            listGame.append(Group.gameList[i][1].toString()).append("\n");
                         }
+                        replyToUser(replyToken, listGame.toString());
                         pushMessage(groupid, "Untuk memulai game gunakan \n/main <nama game>.");
                     }
                     if (msgText.equalsIgnoreCase("/berhenti")) {
