@@ -186,7 +186,7 @@ public class LineBotController
                         if (currentGroup != null) {
                             if (currentGroup.getGAME_STATUS() != 0) {
                                 currentGroup.playerList.clear();
-                                currentGroup.setGAME_STATUS(0);
+                                currentGroup.setGAME_STATUS(3);
                                 replyToUser(replyToken, "Game " + Group.gameList[currentGroup.getGAME_ID()][1].toString() + " telah diberhentikan.");
                                 currentGroup.setGAME_ID(-1);
                             } else {
@@ -328,6 +328,7 @@ public class LineBotController
                             }
                         }
                     }
+
                     if(msgText.equalsIgnoreCase("/kocokdadu")){
                         if(userId == null){
                             replyToUser(replyToken, "Kamu belum mengupdate versi linemu ke yang paling baru. Update linemu terlebih dahulu.");
