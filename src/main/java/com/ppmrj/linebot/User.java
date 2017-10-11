@@ -9,7 +9,7 @@ public class User {
     private String id;
     private String name;
     private String pictureUrl;
-    private String null_placeholder = "https://res.cloudinary.com/biglebomb/image/upload/v1507740416/user-placeholder_z3jwjb.jpg";
+    private String null_placeholder = "https://res.cloudinary.com/biglebomb/image/upload/c_crop,h_270,w_270/v1507740416/user-placeholder_z3jwjb.jpg";
 
     private int role;
     private String status = "";

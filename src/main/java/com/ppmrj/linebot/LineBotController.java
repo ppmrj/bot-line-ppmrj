@@ -379,14 +379,11 @@ public class LineBotController
                                         Graphics graphics = combined.getGraphics();
                                         graphics.drawImage(map, 0, 0, null);
                                         for(int i=0; i<currentGroup.playerList.size(); i++){
-                                            User user = getUserProfile(currentGroup.playerList.get(i).getId());
-                                            if(user != null) {
-                                                playerAvatar[i] = resize(new URL(user.getPictureUrl()), new Dimension(map.getWidth() / 4, map.getHeight() / 4));
-                                                graphics.drawImage(playerAvatar[i],
-                                                        getImageCoordinateFromPosition(user.getPosition(), map)[0],
-                                                        getImageCoordinateFromPosition(user.getPosition(), map)[1],
-                                                        null);
-                                            }
+                                            playerAvatar[i] = resize(new URL(currentGroup.playerList.get(i).getPictureUrl()), new Dimension(map.getWidth() / 4, map.getHeight() / 4));
+                                            graphics.drawImage(playerAvatar[i],
+                                                    getImageCoordinateFromPosition(currentGroup.playerList.get(i).getPosition(), map)[0],
+                                                    getImageCoordinateFromPosition(currentGroup.playerList.get(i).getPosition(), map)[1],
+                                                    null);
                                         }
                                         File finalFile = new File("final.png");
                                         ImageIO.write(combined, "PNG", finalFile);
@@ -394,7 +391,7 @@ public class LineBotController
                                         Gson gson2 = new GsonBuilder().create();
                                         String json = gson2.toJson(uploadResult);
                                         ImageResponse imageResponse = gson.fromJson(json, ImageResponse.class);
-                                        pushImage(groupid, imageResponse.url);
+                                        pushImage(groupid, imageResponse.secure_url);
                                     } catch (IOException e) {
                                         e.printStackTrace();
                                     }
