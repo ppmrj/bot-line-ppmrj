@@ -28,7 +28,6 @@ public class Group {
 
     String MAP_URL = "http://res.cloudinary.com/biglebomb/image/upload/v1507717846/mapulartangga.jpg";
 
-    ArrayList<String> playerIDList = new ArrayList<String>();
     ArrayList<User> playerList = new ArrayList<User>();
 
     static Object[][] gameList = {
@@ -73,10 +72,6 @@ public class Group {
 
     public String getGameByID(int id){
         return gameList[id][1].toString();
-    }
-
-    public void addPlayerIDToList(String id){
-        playerIDList.add(id);
     }
 
     public void addPlayerToList(User user){

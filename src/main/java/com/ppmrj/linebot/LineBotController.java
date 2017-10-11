@@ -379,7 +379,8 @@ public class LineBotController
                                         Graphics graphics = combined.getGraphics();
                                         graphics.drawImage(map, 0, 0, null);
                                         for(int i=0; i<currentGroup.playerList.size(); i++){
-                                            playerAvatar[i] = resize(new URL(currentGroup.playerList.get(i).getPictureUrl()), new Dimension(135, 135));
+                                            System.out.println(currentGroup.playerList.get(i).getPictureUrl());
+                                            playerAvatar[i] = resize(new URL(currentGroup.playerList.get(i).getPictureUrl()), new Dimension(map.getWidth()/4, map.getHeight()/4));
                                             graphics.drawImage(playerAvatar[i],
                                                     getImageCoordinateFromPosition(currentGroup.playerList.get(i).getPosition(), map)[0],
                                                     getImageCoordinateFromPosition(currentGroup.playerList.get(i).getPosition(), map)[1],
@@ -454,7 +455,7 @@ public class LineBotController
                         if (group.ROLES_ASSIGNED == 0) {
                             Collections.shuffle(group.playerList);
                             int index = 0;
-                            for(int i=0; i<User.roles.length-1; i++){
+                            for(int i=0; i<User.roles.length; i++){
                                 if(i < User.roles.length ){
                                     if(total_mafia <= group.playerList.size() / 3){
                                         group.playerList.get(i).setRole(index);
@@ -535,9 +536,7 @@ public class LineBotController
                             group.VOTING_STARTED = 1;
                         } else {
                             group.VOTING_TIME--;
-                            if(group.VOTING_TIME == 30)
-                                pushMessage(group.getId(), "Voting akan berakhir dalam 30 detik.");
-                            else if(group.VOTING_TIME == 10)
+                            if(group.VOTING_TIME == 10)
                                 pushMessage(group.getId(), "Voting akan berakhir dalam 10 detik.");
                             else if(group.VOTING_TIME == 0){
                                 group.playerList.sort(new Comparator<User>() {
@@ -575,22 +574,21 @@ public class LineBotController
         } else if(group.GAME_ID == 1){
             Timer timer = new Timer();
             int[][] ladderArray = {
-                    {3, 12},
-                    {7, 32},
-                    {25, 45},
-                    {37, 78},
-                    {42, 54},
-                    {69, 94},
-                    {82, 90}
+                    {3, 21},
+                    {8, 30},
+                    {28, 84},
+                    {58, 77},
+                    {75, 86},
+                    {90, 91}
             };
             int[][] snakeArray = {
-                    {10, 5},
-                    {36, 22},
-                    {57, 31},
-                    {29, 3},
-                    {49, 25},
-                    {98, 78},
-                    {63, 33}
+                    {17, 3},
+                    {52, 29},
+                    {57, 40},
+                    {62, 22},
+                    {88, 18},
+                    {95, 51},
+                    {97, 79}
             };
             timer.scheduleAtFixedRate(new TimerTask() {
                 @Override
@@ -632,6 +630,11 @@ public class LineBotController
                         if(currentPlayer.getDiceRollStatus() == 1) {
                             pushMessage(group.getId(), currentPlayer.getName() + " telah mengocok dadu dan hasilnya adalah " + currentPlayer.getDiceNumber());
                             currentPlayer.setPosition(currentPlayer.getPosition() + currentPlayer.getDiceNumber());
+                            if(isInLadderColumn(currentPlayer.getPosition(), ladderArray)){
+                                currentPlayer.setPosition(currentPlayer.getPosition()+getLadderDestination(currentPlayer.getPosition(), ladderArray));
+                            } else if(isInSnakeColumn(currentPlayer.getPosition(), snakeArray)){
+                                currentPlayer.setPosition(currentPlayer.getPosition()-getSnakeDestination(currentPlayer.getPosition(), snakeArray));
+                            }
                             if (currentPlayer.getPosition() > 100) {
                                 int mundur = currentPlayer.getPosition() - 100;
                                 currentPlayer.setPosition(currentPlayer.getPosition() - mundur);
@@ -646,7 +649,7 @@ public class LineBotController
                             group.ROLLING_TIME = 30;
                             Collections.rotate(group.playerList, -1);
                         } else {
-                            if(group.ROLLING_TIME == 30 || group.ROLLING_TIME == 29){
+                            if(group.ROLLING_TIME == 29){
                                 if(currentPlayer.getDiceNumber() == 6)
                                     pushMessage(group.getId(), currentPlayer.getName()+" silahkan mengocok dadu kembali dengan /kocokdadu.");
                                 else
@@ -694,6 +697,46 @@ public class LineBotController
      * Resize Snippet
      * @source https://stackoverflow.com/questions/18550284/java-resize-image-from-an-url
      */
+
+    public int getSnakeDestination(int position, int[][] snakeArray){
+        for(int[] aSnakeArray : snakeArray) {
+            if(position == aSnakeArray[0])
+                return aSnakeArray[1];
+            else
+                return 0;
+        }
+        return 0;
+    }
+
+    public Boolean isInSnakeColumn(int position, int[][] snakeArray){
+        for(int i=0; i<snakeArray.length; i++){
+            if(position == snakeArray[i][0])
+                return true;
+            else
+                return false;
+        }
+        return false;
+    }
+
+    public int getLadderDestination(int position, int[][] ladderArray){
+        for(int[] aLadderArray : ladderArray) {
+            if(position == aLadderArray[0])
+                return aLadderArray[1];
+            else
+                return 0;
+        }
+        return 0;
+    }
+
+    public Boolean isInLadderColumn(int position, int[][] ladderArray){
+        for (int[] aLadderArray : ladderArray) {
+            if (position == aLadderArray[0])
+                return true;
+            else
+                return false;
+        }
+        return false;
+    }
 
     public BufferedImage resize(final URL url, final Dimension size) throws IOException{
         final BufferedImage image = ImageIO.read(url);
