@@ -1,19 +1,5 @@
-package com.dicoding.menirukanmu;
+package com.ppmrj.linebot;
 
-import com.linecorp.bot.client.LineMessagingServiceBuilder;
-import com.linecorp.bot.model.PushMessage;
-import com.linecorp.bot.model.action.Action;
-import com.linecorp.bot.model.action.PostbackAction;
-import com.linecorp.bot.model.message.TemplateMessage;
-import com.linecorp.bot.model.message.TextMessage;
-import com.linecorp.bot.model.message.template.ButtonsTemplate;
-import com.linecorp.bot.model.profile.UserProfileResponse;
-import com.linecorp.bot.model.response.BotApiResponse;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import retrofit2.Response;
-
-import java.io.IOException;
 import java.util.*;
 
 public class Group {

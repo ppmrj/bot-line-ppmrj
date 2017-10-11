@@ -1,6 +1,5 @@
-package com.dicoding.menirukanmu;
+package com.ppmrj.linebot;
 
-import com.linecorp.bot.model.event.PostbackEvent;
 import com.linecorp.bot.model.event.postback.PostbackContent;
 
 public class Events {

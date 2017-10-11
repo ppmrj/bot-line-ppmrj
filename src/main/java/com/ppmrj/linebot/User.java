@@ -1,4 +1,4 @@
-package com.dicoding.menirukanmu;
+package com.ppmrj.linebot;
 
 import java.util.ArrayList;
 

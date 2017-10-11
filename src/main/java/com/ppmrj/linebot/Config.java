@@ -1,5 +1,5 @@
 
-package com.dicoding.menirukanmu;
+package com.ppmrj.linebot;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.*;

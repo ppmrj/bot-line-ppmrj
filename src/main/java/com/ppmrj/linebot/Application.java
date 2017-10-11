@@ -1,4 +1,4 @@
-package com.dicoding.menirukanmu;
+package com.ppmrj.linebot;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

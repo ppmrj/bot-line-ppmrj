@@ -1,11 +1,11 @@
 
-package com.dicoding.menirukanmu;
+package com.ppmrj.linebot;
 
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
-import com.dicoding.menirukanmu.Responses.ImageResponse;
-import com.dicoding.menirukanmu.Responses.InfoResponse;
-import com.dicoding.menirukanmu.Responses.RegistrasiResponse;
+import com.ppmrj.linebot.Responses.ImageResponse;
+import com.ppmrj.linebot.Responses.InfoResponse;
+import com.ppmrj.linebot.Responses.RegistrasiResponse;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.linecorp.bot.client.LineMessagingServiceBuilder;
