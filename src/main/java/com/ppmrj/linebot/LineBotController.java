@@ -401,21 +401,22 @@ public class LineBotController
                                 }
                             }
                         }
-                        if(msgText.equalsIgnoreCase("/map")){
-                            if(userId == null){
+                        if(msgText.equalsIgnoreCase("/map2")) {
+                            if (userId == null) {
                                 replyToUser(replyToken, "Kamu belum mengupdate versi linemu ke yang paling baru. Update linemu terlebih dahulu.");
                             }
-                            if(currentGroup != null){
-                                if(currentGroup.GAME_STATUS == 0){
+                            if (currentGroup != null) {
+                                if (currentGroup.GAME_STATUS == 0) {
                                     replyToUser(replyToken, "Belum ada permainan yang dibuat. Ketik /listgame untuk melihat game yang tersedia.");
                                 } else {
-                                    if(currentGroup.GAME_ID != 1 ){
+                                    if (currentGroup.GAME_ID != 1) {
                                         replyToUser(replyToken, "Game ular tangga sedang tidak dimainkan.");
                                     } else {
                                         pushImage(groupid, currentGroup.MAP_URL);
                                     }
                                 }
                             }
+                        }
                     }
 //                    try {
 //                        Response<UserProfileResponse> userProfile = LineMessagingServiceBuilder
@@ -648,9 +649,12 @@ public class LineBotController
                             pushMessage(group.getId(), currentPlayer.getName() + " telah mengocok dadu dan hasilnya adalah " + currentPlayer.getDiceNumber());
                             currentPlayer.setPosition(currentPlayer.getPosition() + currentPlayer.getDiceNumber());
                             if(isInLadderColumn(currentPlayer.getPosition(), ladderArray)){
-                                currentPlayer.setPosition(currentPlayer.getPosition()+getLadderDestination(currentPlayer.getPosition(), ladderArray));
+                                pushMessage(group.getId(), currentPlayer.getName() + " berhenti di kolom tangga dan naik ke kolom nomor "+getLadderData(currentPlayer.getPosition(), ladderArray)[1]);
+                                currentPlayer.setPosition(getLadderData(currentPlayer.getPosition(), ladderArray)[1]);
+
                             } else if(isInSnakeColumn(currentPlayer.getPosition(), snakeArray)){
-                                currentPlayer.setPosition(currentPlayer.getPosition()-getSnakeDestination(currentPlayer.getPosition(), snakeArray));
+                                pushMessage(group.getId(), currentPlayer.getName() + " berhenti di kolom ular dan turun ke kolom nomor "+getSnakeData(currentPlayer.getPosition(), snakeArray)[1]);
+                                currentPlayer.setPosition(getSnakeData(currentPlayer.getPosition(), snakeArray)[1]);
                             }
                             if (currentPlayer.getPosition() > 100) {
                                 int mundur = currentPlayer.getPosition() - 100;
@@ -715,14 +719,14 @@ public class LineBotController
      * @source https://stackoverflow.com/questions/18550284/java-resize-image-from-an-url
      */
 
-    public int getSnakeDestination(int position, int[][] snakeArray){
+    public int[] getSnakeData(int position, int[][] snakeArray){
         for(int[] aSnakeArray : snakeArray) {
             if(position == aSnakeArray[0])
-                return aSnakeArray[1];
+                return aSnakeArray;
             else
-                return 0;
+                return null;
         }
-        return 0;
+        return null;
     }
 
     public Boolean isInSnakeColumn(int position, int[][] snakeArray){
@@ -735,14 +739,14 @@ public class LineBotController
         return false;
     }
 
-    public int getLadderDestination(int position, int[][] ladderArray){
+    public int[] getLadderData(int position, int[][] ladderArray){
         for(int[] aLadderArray : ladderArray) {
             if(position == aLadderArray[0])
-                return aLadderArray[1];
+                return aLadderArray;
             else
-                return 0;
+                return null;
         }
-        return 0;
+        return null;
     }
 
     public Boolean isInLadderColumn(int position, int[][] ladderArray){
@@ -849,6 +853,7 @@ public class LineBotController
                     .getProfile(userId)
                     .execute();
             if(!response.message().equalsIgnoreCase("not found")){
+                System.out.println("ID: "+response.body() + " | Name: "+response.body().getDisplayName()+" | URL: "+response.body().getPictureUrl());
                 return new User(response.body().getUserId(), response.body().getDisplayName(), response.body().getPictureUrl());
             } else {
                 return null;
