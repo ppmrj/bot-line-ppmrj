@@ -79,7 +79,7 @@ public class LineBotController
         System.out.println(text);
         final boolean valid=new LineSignatureValidator(lChannelSecret.getBytes()).validateSignature(aPayload.getBytes(), aXLineSignature);
         System.out.println("The signature is: " + (valid ? "valid" : "tidak valid"));
-        if(aPayload!=null && aPayload.length() > 0)
+        if(aPayload.length() > 0)
         {
             System.out.println("Payload: " + aPayload);
         }
@@ -222,7 +222,7 @@ public class LineBotController
                                     currentGroup.GAME_STATUS = 1;
                                     currentGroup.GAME_ID = 1;
                                     currentGroup.addPlayerToList(user);
-                                    pushMessage(groupid, user.getName() + " telah memulai permainan "+Group.gameList[currentGroup.GAME_ID][1].toString()+". Ketik /join untuk mengikuti. Game akan dimulai dalam "+currentGroup.PREGAME_TIME/60+" menit." +
+                                    pushMessage(groupid, user.getName() + " telah memulai permainan "+Group.gameList[currentGroup.GAME_ID][1].toString()+". Ketik /join untuk bergabung. Game akan dimulai dalam "+currentGroup.PREGAME_TIME/60+" menit." +
                                             "\n" +
                                             "Minimal pemain: "+Group.gameList[currentGroup.GAME_ID][2]);
                                     startGame(currentGroup);
@@ -242,7 +242,7 @@ public class LineBotController
                                         currentGroup.setGAME_ID(0);
                                         currentGroup.setGAME_STATUS(1);
                                         currentGroup.addPlayerToList(user);
-                                        pushMessage(groupid, user.getName() + " telah memulai permainan "+Group.gameList[currentGroup.GAME_ID][1].toString()+". Ketik /join untuk mengikuti. Game akan dimulai dalam "+currentGroup.PREGAME_TIME/60+" menit." +
+                                        pushMessage(groupid, user.getName() + " telah memulai permainan "+Group.gameList[currentGroup.GAME_ID][1].toString()+". Ketik /join untuk bergabung. Game akan dimulai dalam "+currentGroup.PREGAME_TIME/60+" menit." +
                                                 "\n" +
                                                 "Minimal pemain: "+Group.gameList[currentGroup.GAME_ID][2]);
                                         startGame(currentGroup);
@@ -262,7 +262,7 @@ public class LineBotController
                                 if (!user.getId().equals("0")) {
                                     group.addPlayerToList(user);
                                     groups.add(group);
-                                    pushMessage(groupid, user.getName() + " telah memulai permainan "+Group.gameList[group.GAME_ID][1].toString()+". Ketik /join untuk mengikuti. Game akan dimulai dalam 3 menit.");
+                                    pushMessage(groupid, user.getName() + " telah memulai permainan "+Group.gameList[group.GAME_ID][1].toString()+". Ketik /join untuk bergabung. Game akan dimulai dalam 3 menit.");
                                 } else {
                                     replyToUser(replyToken, "Kamu belum mengupdate versi linemu ke yang paling baru. Update linemu terlebih dahulu.");
                                 }
@@ -422,13 +422,13 @@ public class LineBotController
                         else {
                             group.PREGAME_TIME--;
                             if (group.PREGAME_TIME == 120)
-                                pushMessage(group.getId(), "Game akan dimulai dalam waktu 2 menit. Ketik /join untuk mengikuti.");
+                                pushMessage(group.getId(), "Game akan dimulai dalam waktu 2 menit. Ketik /join untuk bergabung.");
                             else if (group.PREGAME_TIME == 60)
-                                pushMessage(group.getId(), "Game akan dimulai dalam waktu 1 menit. Ketik /join untuk mengikuti.");
+                                pushMessage(group.getId(), "Game akan dimulai dalam waktu 1 menit. Ketik /join untuk bergabung.");
                             else if (group.PREGAME_TIME == 30)
-                                pushMessage(group.getId(), "Game akan dimulai dalam waktu 30 detik. Ketik /join untuk mengikuti.");
+                                pushMessage(group.getId(), "Game akan dimulai dalam waktu 30 detik. Ketik /join untuk bergabung.");
                             else if (group.PREGAME_TIME == 10)
-                                pushMessage(group.getId(), "Game akan dimulai dalam waktu 10 detik. Ketik /join untuk mengikuti.");
+                                pushMessage(group.getId(), "Game akan dimulai dalam waktu 10 detik. Ketik /join untuk bergabung.");
                             else if (group.PREGAME_TIME == 0 && group.playerList.size() >= (Integer) Group.gameList[group.GAME_ID][2]){
                                 pushMessage(group.getId(), "Game mafia dimulai dengan "+group.playerList.size()+" pemain");
                                 group.GAME_STATUS = 2;
@@ -459,6 +459,7 @@ public class LineBotController
                                 }
                                 ButtonsTemplate buttonsTemplate = new ButtonsTemplate("N/A", "Voting pemain", "Pilih pemain yang ingin diciduk", listUser);
                                 votingMessage(group.playerList.get(i).getId(), buttonsTemplate);
+                                group.GAME_JUST_BEGIN = 0;
                             }
                             group.VOTING_STARTED = 1;
                         } else {
@@ -526,13 +527,13 @@ public class LineBotController
                     if(group.GAME_STATUS == 1){
                         group.PREGAME_TIME--;
                         if (group.PREGAME_TIME == 120)
-                            pushMessage(group.getId(), "Game akan dimulai dalam waktu 2 menit. Ketik /join untuk mengikuti.");
+                            pushMessage(group.getId(), "Game akan dimulai dalam waktu 2 menit. Ketik /join untuk bergabung.");
                         else if (group.PREGAME_TIME == 60)
-                            pushMessage(group.getId(), "Game akan dimulai dalam waktu 1 menit. Ketik /join untuk mengikuti.");
+                            pushMessage(group.getId(), "Game akan dimulai dalam waktu 1 menit. Ketik /join untuk bergabung.");
                         else if (group.PREGAME_TIME == 30)
-                            pushMessage(group.getId(), "Game akan dimulai dalam waktu 30 detik. Ketik /join untuk mengikuti.");
+                            pushMessage(group.getId(), "Game akan dimulai dalam waktu 30 detik. Ketik /join untuk bergabung.");
                         else if (group.PREGAME_TIME == 10)
-                            pushMessage(group.getId(), "Game akan dimulai dalam waktu 10 detik. Ketik /join untuk mengikuti.");
+                            pushMessage(group.getId(), "Game akan dimulai dalam waktu 10 detik. Ketik /join untuk bergabung.");
                         else if (group.PREGAME_TIME == 0 && group.playerList.size() >= (Integer) Group.gameList[group.GAME_ID][2]){
                             pushMessage(group.getId(), "Game "+Group.gameList[group.GAME_ID][1].toString()+" dimulai dengan "+group.playerList.size()+" pemain");
                             group.GAME_STATUS = 2;
@@ -555,6 +556,7 @@ public class LineBotController
                             pushMessage(group.getId(), "Jika pemain mendapatkan "+group.MAX_STRIKE+" maka dia akan otomatis dikeluarkan.");
                             pushMessage(group.getId(), "Pemain pertama adalah "+group.playerList.get(0).getName());
                         }
+                        group.GAME_JUST_BEGIN = 0;
                         if(group.ROLLING_TIME == 10){
                             pushMessage(group.getId(), currentPlayer.getName()+" silahkan mengocok dadu dengan /kocokdadu.");
                         } else if(group.ROLLING_TIME == 5) {
