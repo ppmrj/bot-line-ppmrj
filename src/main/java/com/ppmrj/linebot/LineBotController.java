@@ -825,20 +825,19 @@ public class LineBotController
         int width = image.getWidth()/10;
         int height = image.getHeight()/10;
         int x, y;
+        int pos;
 
         if(checkPosition(position).equalsIgnoreCase("asc")){
-            int pos = Integer.parseInt(Integer.toString(position).substring(1));
-            if(pos == 0)
-                x = 0;
-             else
+            if(position > 9){
+                pos = Integer.parseInt(String.valueOf(position).substring(1));
                 x = width*pos;
+            } else {
+                x = width*position;
+            }
         }
         else{
-            int pos = Integer.parseInt(Integer.toString(position).substring(1));
-            if(pos == 0)
-                x = width*10;
-            else
-                x = width*(10-pos);
+            pos = Integer.parseInt(String.valueOf(position).substring(1));
+            x = width*(10-pos);
         }
         y = height*getPositionRow(position);
 
@@ -846,9 +845,8 @@ public class LineBotController
     }
 
     private String checkPosition(int position){
-        if((position > 0 || position <= 10) || (position> 20 || position <= 30) || (position>40 || position <= 50) || (position>60 || position <= 70) || (position>80 || position<=90)){
+        if((position > 0 || position <= 10) || (position> 20 || position <= 30) || (position>40 || position <= 50) || (position>60 || position <= 70) || (position>80 || position<=90))
             return "asc";
-        }
         else
             return "desc";
     }
