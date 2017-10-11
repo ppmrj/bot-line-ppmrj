@@ -446,8 +446,9 @@ public class LineBotController
                                             graphics.drawImage(map, 0, 0, null);
                                             for(int i=0; i<currentGroup.playerList.size(); i++){
                                                 playerAvatar[i] = resize(new URL(currentGroup.playerList.get(i).getPictureUrl()), new Dimension((map.getWidth()/10)/ 2, (map.getHeight()/10) / 2));
-                                                currentPosX = getImageCoordinateFromPosition(currentGroup.playerList.get(i).getPosition(), map)[0];
-                                                currentPosY = getImageCoordinateFromPosition(currentGroup.playerList.get(i).getPosition(), map)[1];
+                                                int[] imageCoordinate = getImageCoordinateFromPosition(currentGroup.playerList.get(i).getPosition(), map, 2, 5);
+                                                currentPosX = imageCoordinate[0];
+                                                currentPosY = imageCoordinate[1];
                                                 System.out.println(currentGroup.playerList.get(i).getName()+"'s Coordinate: X: "+currentPosX
                                                 +" || Y: "+currentPosY);
 
@@ -719,7 +720,7 @@ public class LineBotController
                         User currentPlayer = group.playerList.get(0);
                         if(group.GAME_JUST_BEGIN == 1){
                             pushMessage(group.getId(), "Game akan dimulai...");
-                            pushMessage(group.getId(), "Setiap pemain diharuskan mengocok dadu dengan batas waktu "+Group.gameList[group.GAME_ID][4].toString()+" detik dan maju sesuai hasil dari angka dadu." +
+                            pushMessage(group.getId(), "Setiap pemain diharuskan mengocok dadu dengan batas waktu "+Group.gameList[group.GAME_ID][5].toString()+" detik dan maju sesuai hasil dari angka dadu." +
                                     "\nApabila waktu habis maka pemain mendapat satu pelanggaran.");
                             pushMessage(group.getId(), "Jika pemain mendapatkan "+group.MAX_STRIKE+" maka dia akan otomatis dikeluarkan.");
                             pushMessage(group.getId(), "Apabila pemain mendapatkan angka 6 saat mengocok dadu, maka dia diperbolehkan untuk mengocok dadu kembali.");
@@ -851,9 +852,9 @@ public class LineBotController
         return resized;
     }
 
-    private int[] getImageCoordinateFromPosition(int position, BufferedImage image){
-        int width = image.getWidth()/10;
-        int height = image.getHeight()/10;
+    private int[] getImageCoordinateFromPosition(int position, BufferedImage image, int offsetX, int offsetY){
+        int width = (image.getWidth()/10)+offsetX;
+        int height = (image.getWidth()/10)+offsetY;
         int x, y;
         int pos;
         if(checkPosition(position).equalsIgnoreCase("asc")){
@@ -862,9 +863,9 @@ public class LineBotController
                 if(pos == 0)
                     x = width*9;
                 else
-                    x = width*pos-1;
+                    x = width*(pos-1);
             } else {
-                x = width*position-1;
+                x = width*(position-1);
             }
         }
         else{
@@ -872,7 +873,7 @@ public class LineBotController
             if(pos == 0)
                 x = 0;
             else
-                x = width*pos+1;
+                x = width*(pos+1);
         }
         y = height*getPositionRow(position);
 
