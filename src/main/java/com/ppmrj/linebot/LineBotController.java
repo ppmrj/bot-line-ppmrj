@@ -380,11 +380,13 @@ public class LineBotController
                                         graphics.drawImage(map, 0, 0, null);
                                         for(int i=0; i<currentGroup.playerList.size(); i++){
                                             User user = getUserProfile(currentGroup.playerList.get(i).getId());
-                                            playerAvatar[i] = resize(new URL(user.getPictureUrl()), new Dimension(map.getWidth()/4, map.getHeight()/4));
-                                            graphics.drawImage(playerAvatar[i],
-                                                    getImageCoordinateFromPosition(currentGroup.playerList.get(i).getPosition(), map)[0],
-                                                    getImageCoordinateFromPosition(currentGroup.playerList.get(i).getPosition(), map)[1],
-                                                    null);
+                                            if(user != null) {
+                                                playerAvatar[i] = resize(new URL(user.getPictureUrl()), new Dimension(map.getWidth() / 4, map.getHeight() / 4));
+                                                graphics.drawImage(playerAvatar[i],
+                                                        getImageCoordinateFromPosition(user.getPosition(), map)[0],
+                                                        getImageCoordinateFromPosition(user.getPosition(), map)[1],
+                                                        null);
+                                            }
                                         }
                                         File finalFile = new File("final.jpg");
                                         ImageIO.write(combined, "JPG", finalFile);
