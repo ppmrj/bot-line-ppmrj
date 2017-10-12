@@ -293,15 +293,14 @@ public class LineBotController
                     }
                     if (msgText.equalsIgnoreCase("/join")) {
                         if(userId == null){
-                            replyToUser(replyToken, "Kamu belum mengupdate versi linemu ke yang paling baru. Update linemu terlebih dahulu.");
-                        }
-                        if (currentGroup != null) {
-                            if (currentGroup.getGAME_STATUS() == 0) {
-                                replyToUser(replyToken, "Belum ada permainan yang dibuat. Ketik /listgame untuk melihat game yang tersedia.");
-                            } else {
-                                User user = getUserProfile(userId);
-                                if (user != null) {
-                                    if (!user.getId().equals("0")) {
+                            replyToUser(replyToken, "Kamu belum mengupdate versi linemu ke yang paling baru. Update linemu terlebih dahulu. Atau kamu belum mensetujui peraturan penggunaan LINE terbaru.");
+                        } else {
+                            if (currentGroup != null) {
+                                if (currentGroup.getGAME_STATUS() == 0) {
+                                    replyToUser(replyToken, "Belum ada permainan yang dibuat. Ketik /listgame untuk melihat game yang tersedia.");
+                                } else {
+                                    User user = getUserProfile(userId);
+                                    if (user != null) {
                                         if(checkIfUserJoined(userId, currentGroup.playerList)){
                                             replyToUser(replyToken, "Kamu sudah tergabung ke dalam game, "+user.getName()+".");
                                         } else {
@@ -314,12 +313,11 @@ public class LineBotController
                                             currentGroup.GAME_STATUS = 1;
                                         }
                                     } else {
-                                        replyToUser(replyToken, "Kamu belum mengupdate versi linemu ke yang paling baru. Update linemu terlebih dahulu.");
+                                        replyToUser(replyToken, "Kamu belum menambahkan bot sebagai teman. Silahkan tambahkan bot sebagai teman dahulu.");
                                     }
-                                } else {
-                                    replyToUser(replyToken, "Kamu belum menambahkan bot sebagai teman. Silahkan tambahkan bot sebagai teman dahulu.");
                                 }
                             }
+
                         }
                     }
                     if (msgText.equalsIgnoreCase("/mulai")) {
