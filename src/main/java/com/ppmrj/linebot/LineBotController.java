@@ -3,6 +3,7 @@ package com.ppmrj.linebot;
 
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
+import com.linecorp.bot.model.action.MessageAction;
 import com.ppmrj.linebot.Responses.ImageResponse;
 import com.ppmrj.linebot.Responses.InfoResponse;
 import com.ppmrj.linebot.Responses.RegistrasiResponse;
@@ -160,10 +161,6 @@ public class LineBotController
 
                     }
 
-                    /**
-                     * Mafia minigame
-                     * @author Irfan Abyan 2017
-                     */
                     Group currentGroup = searchGroupById(groupid);
 
                     if (msgText.equalsIgnoreCase("/credit")) {
@@ -500,17 +497,6 @@ public class LineBotController
                             }
                         }
                     }
-//                    try {
-//                        Response<UserProfileResponse> userProfile = LineMessagingServiceBuilder
-//                                .create(lChannelAccessToken)
-//                                .build()
-//                                .getProfile(userId)
-//                                .execute();
-//
-//                    } catch (IOException e) {
-//                        pushMessage(groupid, "Perintah gagal dijalankan. Pastikan kamu sudah menambahkan bot ini sebagai teman.");
-//                        e.printStackTrace();
-//                    }
                 }
 
                 /************* END OF MAFIA MINIGAME ************************/
@@ -533,7 +519,7 @@ public class LineBotController
             }
         }
 
-        return new ResponseEntity<String>(HttpStatus.OK);
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 
 
@@ -629,7 +615,7 @@ public class LineBotController
                                     listUser.add(new PostbackAction(group.playerList.get(j).getName(), group.playerList.get(j).getId()+"&groupId="+group.getId()));
                                 }
                                 ButtonsTemplate buttonsTemplate = new ButtonsTemplate("N/A", "Voting pemain", "Pilih pemain yang ingin diciduk", listUser);
-                                votingMessage(group.playerList.get(i).getId(), buttonsTemplate);
+                                buttonMessage(group.playerList.get(i).getId(), buttonsTemplate);
                                 group.GAME_JUST_BEGIN = 0;
                             }
                             group.VOTING_STARTED = 1;
@@ -695,14 +681,18 @@ public class LineBotController
                 public void run() {
                     if(group.GAME_STATUS == 1){
                         group.PREGAME_TIME--;
-                        if (group.PREGAME_TIME == 120)
-                            pushMessage(group.getId(), "Game akan dimulai dalam waktu 2 menit. Ketik /join untuk bergabung.");
-                        else if (group.PREGAME_TIME == 60)
-                            pushMessage(group.getId(), "Game akan dimulai dalam waktu 1 menit. Ketik /join untuk bergabung.");
-                        else if (group.PREGAME_TIME == 30)
-                            pushMessage(group.getId(), "Game akan dimulai dalam waktu 30 detik. Ketik /join untuk bergabung.");
-                        else if (group.PREGAME_TIME == 10)
-                            pushMessage(group.getId(), "Game akan dimulai dalam waktu 10 detik. Ketik /join untuk bergabung.");
+                        if (group.PREGAME_TIME == 120) {
+                            ButtonsTemplate buttonsTemplate = new ButtonsTemplate(null, "Gabung ke permainan", "Game akan dimulai dalam waktu 2 menit. Ketik /join untuk bergabung.", Arrays.asList(new MessageAction("Gabung", "/join")));
+                            buttonMessage(group.getId(), buttonsTemplate);
+                        }
+                        else if (group.PREGAME_TIME == 60){
+                            ButtonsTemplate buttonsTemplate = new ButtonsTemplate(null, "Gabung ke permainan", "Game akan dimulai dalam waktu 1 menit. Ketik /join untuk bergabung.", Arrays.asList(new MessageAction("Gabung", "/join")));
+                            buttonMessage(group.getId(), buttonsTemplate);
+                        }
+                        else if (group.PREGAME_TIME == 30){
+                            ButtonsTemplate buttonsTemplate = new ButtonsTemplate(null, "Gabung ke permainan", "Game akan dimulai dalam waktu 30 detik. Ketik /join untuk bergabung.", Arrays.asList(new MessageAction("Gabung", "/join")));
+                            buttonMessage(group.getId(), buttonsTemplate);
+                        }
                         else if (group.PREGAME_TIME == 0 && group.playerList.size() >= (Integer) Group.gameList[group.GAME_ID][2]){
                             pushMessage(group.getId(), "Game "+Group.gameList[group.GAME_ID][1].toString()+" dimulai dengan "+group.playerList.size()+" pemain");
                             group.GAME_STATUS = 2;
@@ -844,6 +834,7 @@ public class LineBotController
      * Resize Snippet
      * @source https://stackoverflow.com/questions/18550284/java-resize-image-from-an-url
      */
+
     public BufferedImage resize(final URL url, final Dimension size) throws IOException{
         final BufferedImage image = ImageIO.read(url);
         final BufferedImage resized = new BufferedImage(size.width, size.height, BufferedImage.TYPE_INT_ARGB);
@@ -990,7 +981,7 @@ public class LineBotController
         }
     }
 
-    private void votingMessage(String sourceId, ButtonsTemplate template){
+    private void buttonMessage(String sourceId, ButtonsTemplate template){
         TemplateMessage templateMessage = new TemplateMessage("Voting", template);
         PushMessage pushMessage = new PushMessage(sourceId, templateMessage);
         try {
