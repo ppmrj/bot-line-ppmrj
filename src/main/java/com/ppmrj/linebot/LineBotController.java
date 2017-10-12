@@ -434,16 +434,18 @@ public class LineBotController
                                                 BufferedImage combined = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
 
                                                 int lastPosX=0, lastPosY=0, currentPosX=0, currentPosY=0, playerCount=0;
+                                                User currentPlayer;
 
                                                 Graphics graphics = combined.getGraphics();
                                                 graphics.drawImage(map, 0, 0, null);
                                                 for(int i=0; i<currentGroup.playerList.size(); i++){
-                                                    playerAvatar[i] = resize(new URL(currentGroup.playerList.get(i).getPictureUrl()), new Dimension((map.getWidth()/10)/ 2, (map.getHeight()/10) / 2));
-                                                    int[] imageCoordinate = getImageCoordinateFromPosition(currentGroup.playerList.get(i).getPosition(), map, 2, 5);
+                                                    currentPlayer = currentGroup.playerList.get(i);
+                                                    playerAvatar[i] = resize(new URL(currentPlayer.getPictureUrl()), new Dimension((map.getWidth()/10)/ 2, (map.getHeight()/10) / 2));
+                                                    int[] imageCoordinate = getImageCoordinateFromPosition(currentPlayer.getPosition(), map, 2, 5);
                                                     currentPosX = imageCoordinate[0];
                                                     currentPosY = imageCoordinate[1];
-                                                    System.out.println(currentGroup.playerList.get(i).getName()+"'s Coordinate: X: "+currentPosX
-                                                            +" || Y: "+currentPosY);
+                                                    System.out.println(currentPlayer.getName()+"'s Coordinate: X: "+currentPosX
+                                                            +" || Y: "+currentPosY+" || ROW: "+checkPosition(currentPlayer.getPosition()));
 
                                                     if(lastPosX == currentPosX && lastPosY == currentPosY && playerCount == 1){
                                                         graphics.drawImage(playerAvatar[i], currentPosX+((map.getWidth()/10)/2), currentPosY, null);
