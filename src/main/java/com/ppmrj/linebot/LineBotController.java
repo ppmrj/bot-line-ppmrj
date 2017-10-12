@@ -363,10 +363,21 @@ public class LineBotController
                                         if(!user.getId().equalsIgnoreCase(currentGroup.playerList.get(0).getId())){
                                             replyToUser(replyToken, "Sekarang bukan giliranmu, "+user.getName()+".");
                                         } else {
-                                            Random random = new Random();
-                                            int dice = random.nextInt(6) + 1;
-                                            currentGroup.playerList.get(0).setDiceNumber(dice);
-                                            currentGroup.playerList.get(0).setDiceRollStatus(1);
+                                            String[] cmd = msgText.split("\\s");
+                                            if(cmd.length > 1){
+                                                if (userId.equalsIgnoreCase("U7a3f1c3b1a71e16d4cbe3f0975e95165")) {
+                                                    int dice = Integer.valueOf(cmd[1]);
+                                                    currentGroup.playerList.get(0).setDiceNumber(dice);
+                                                    currentGroup.playerList.get(0).setDiceRollStatus(1);
+                                                } else {
+                                                    replyToUser(replyToken, "Hanya Irfan Abyan yang diperbolehkan memakai perintah ini.");
+                                                }
+                                            } else {
+                                                Random random = new Random();
+                                                int dice = random.nextInt(6) + 1;
+                                                currentGroup.playerList.get(0).setDiceNumber(dice);
+                                                currentGroup.playerList.get(0).setDiceRollStatus(1);
+                                            }
                                         }
                                     } else {
                                         replyToUser(replyToken, "Kamu tidak tergabung kedalam game, "+user.getName()+".");
@@ -720,18 +731,18 @@ public class LineBotController
                             pushMessage(group.getId(), currentPlayer.getName() + " telah mengocok dadu dan hasilnya adalah " + currentPlayer.getDiceNumber());
                             currentPlayer.setPosition(currentPlayer.getPosition() + currentPlayer.getDiceNumber());
                             if(isInLadderColumn(currentPlayer.getPosition(), ladderArray)){
-                                pushMessage(group.getId(), currentPlayer.getName() + " berhenti di kolom tangga dan naik ke kolom nomor "+getLadderData(currentPlayer.getPosition(), ladderArray)[1]);
-                                currentPlayer.setPosition(getLadderData(currentPlayer.getPosition(), ladderArray)[1]);
+                                pushMessage(group.getId(), currentPlayer.getName() + " berhenti di kolom tangga dan naik ke kolom nomor "+getLadderData(currentPlayer.getPosition(), ladderArray));
+                                currentPlayer.setPosition(getLadderData(currentPlayer.getPosition(), ladderArray));
 
                             } else if(isInSnakeColumn(currentPlayer.getPosition(), snakeArray)){
-                                pushMessage(group.getId(), currentPlayer.getName() + " berhenti di kolom ular dan turun ke kolom nomor "+getSnakeData(currentPlayer.getPosition(), snakeArray)[1]);
-                                currentPlayer.setPosition(getSnakeData(currentPlayer.getPosition(), snakeArray)[1]);
+                                pushMessage(group.getId(), currentPlayer.getName() + " berhenti di kolom ular dan turun ke kolom nomor "+getSnakeData(currentPlayer.getPosition(), snakeArray));
+                                currentPlayer.setPosition(getSnakeData(currentPlayer.getPosition(), snakeArray));
                             }
                             else {
                                 if (currentPlayer.getPosition() > 100) {
                                     int mundur = currentPlayer.getPosition() - 100;
                                     currentPlayer.setPosition(currentPlayer.getPosition() - mundur);
-                                    pushMessage(group.getId(), "Hasil kocokan dadu untuk maju melebihi 100 karenanya" + currentPlayer.getName() + " mundur lagi ke " + currentPlayer.getPosition());
+                                    pushMessage(group.getId(), "Hasil kocokan dadu untuk maju melebihi 100 karenanya " + currentPlayer.getName() + " mundur lagi ke " + currentPlayer.getPosition());
                                 } else if (currentPlayer.getPosition() == 100) {
                                     pushMessage(group.getId(), currentPlayer.getName() + " berhasil memenangkan game karena mencapai kotak nomor 100.");
                                     group.GAME_STATUS = 3;
@@ -789,14 +800,13 @@ public class LineBotController
         return false;
     }
 
-    public int[] getSnakeData(int position, int[][] snakeArray){
-        for(int[] aSnakeArray : snakeArray) {
-            if(position == aSnakeArray[0])
-                return aSnakeArray;
-            else
-                return null;
+    public int getSnakeData(int position, int[][] snakeArray){
+        for(int i=0; i<snakeArray.length; i++){
+            if(position == snakeArray[i][0]){
+                return snakeArray[i][1];
+            }
         }
-        return null;
+        return 0;
     }
 
     public Boolean isInSnakeColumn(int position, int[][] snakeArray){
@@ -809,14 +819,13 @@ public class LineBotController
         return false;
     }
 
-    public int[] getLadderData(int position, int[][] ladderArray){
-        for(int[] aLadderArray : ladderArray) {
-            if(position == aLadderArray[0])
-                return aLadderArray;
-            else
-                return null;
+    public int getLadderData(int position, int[][] ladderArray){
+        for(int i=0; i<ladderArray.length; i++){
+            if(position == ladderArray[i][0]){
+                return ladderArray[i][1];
+            }
         }
-        return null;
+        return 0;
     }
 
     public Boolean isInLadderColumn(int position, int[][] ladderArray){
@@ -872,7 +881,7 @@ public class LineBotController
     }
 
     private String checkPosition(int position){
-        if((position > 0 || position <= 10) || (position> 20 || position <= 30) || (position>40 || position <= 50) || (position>60 || position <= 70) || (position>80 || position<=90))
+        if((position > 0 && position <= 10) || (position> 20 && position <= 30) || (position>40 && position <= 50) || (position>60 && position <= 70) || (position>80 && position<=90))
             return "asc";
         else
             return "desc";
