@@ -5,6 +5,8 @@ import java.util.*;
 public class Group {
     private String id;
     private String label;
+    private int gameStatus;
+
     /**
      * Game status
      * 1 = PRE-GAME;
@@ -27,10 +29,9 @@ public class Group {
     int DELAY_TIME = 3; // Seconds
 
     int ANTI_SPAM_MAP = 30;
-
     String MAP_URL = "https://res.cloudinary.com/biglebomb/image/upload/v1507747592/mapulartangga2_ji2t3c.jpg";
 
-    ArrayList<User> playerList = new ArrayList<User>();
+    ArrayList<User> playerList = new ArrayList<>();
 
     static Object[][] gameList = {
             {0, "Mafia", 4, 20, 120, 60}, // ID, Game name, Minimum player, Maximum player, Pregame time, Roll time
@@ -56,23 +57,7 @@ public class Group {
         this.id = id;
     }
 
-    public int getGAME_STATUS() {
-        return GAME_STATUS;
-    }
-
-    public void setGAME_STATUS(int GAME_STATUS) {
-        this.GAME_STATUS = GAME_STATUS;
-    }
-
-    public int getGAME_ID() {
-        return GAME_ID;
-    }
-
-    public void setGAME_ID(int GAME_ID) {
-        this.GAME_ID = GAME_ID;
-    }
-
-    public String getGameByID(int id){
+    public String getGameName(int id){
         return gameList[id][1].toString();
     }
 
