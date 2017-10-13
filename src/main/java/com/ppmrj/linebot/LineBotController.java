@@ -122,11 +122,9 @@ public class LineBotController
                 userId = payload.events[0].source.userId;
             }
 
-            if (!payload.events[0].message.type.equals("text")){
-                replyToUser(payload.events[0].replyToken, "Unknown message");
-            } else if (payload.events[0].message.type.equals("postback")) {
+            if (payload.events[0].message.type.equals("postback")) {
                 pushMessage(idTarget, payload.events[0].postbackContent.getData());
-            } else {
+            } else if (payload.events[0].message.type.equals("text")){
                 msgText = payload.events[0].message.text;
                 msgText = msgText.toLowerCase();
 
@@ -233,18 +231,19 @@ public class LineBotController
                     if(msgText.equalsIgnoreCase("/main ulartangga")){
                         if(userId == null){
                             replyToUser(replyToken, "Kamu belum mengupdate versi linemu ke yang paling baru. Update linemu terlebih dahulu.");
-                        }
-                        if(currentGroup != null){
-                            if(currentGroup.GAME_STATUS == 0) {
-                                User user = getUserProfile(userId);
-                                if(user != null){
-                                    currentGroup.GAME_STATUS = 1;
-                                    currentGroup.GAME_ID = 1;
-                                    currentGroup.addPlayerToList(user);
-                                    pushMessage(groupid, user.getName() + " telah memulai permainan "+currentGroup.getGameName(currentGroup.GAME_ID)+". Ketik /join untuk bergabung. Game akan dimulai dalam "+currentGroup.PREGAME_TIME/60+" menit." +
-                                            "\n" +
-                                            "Minimal pemain: "+Group.gameList[currentGroup.GAME_ID][2]);
-                                    startGame(currentGroup);
+                        } else {
+                            if(currentGroup != null){
+                                if(currentGroup.GAME_STATUS == 0) {
+                                    User user = getUserProfile(userId);
+                                    if(user != null){
+                                        currentGroup.GAME_STATUS = 1;
+                                        currentGroup.GAME_ID = 1;
+                                        currentGroup.addPlayerToList(user);
+                                        pushMessage(groupid, user.getName() + " telah memulai permainan "+currentGroup.getGameName(currentGroup.GAME_ID)+". Ketik /join untuk bergabung. Game akan dimulai dalam "+currentGroup.PREGAME_TIME/60+" menit." +
+                                                "\n" +
+                                                "Minimal pemain: "+Group.gameList[currentGroup.GAME_ID][2]);
+                                        startGame(currentGroup);
+                                    }
                                 }
                             }
                         }
@@ -293,7 +292,7 @@ public class LineBotController
                     }
                     if (msgText.equalsIgnoreCase("/join")) {
                         if(userId == null){
-                            replyToUser(replyToken, "Kamu belum mengupdate versi linemu ke yang paling baru. Update linemu terlebih dahulu. Atau kamu belum mensetujui peraturan penggunaan LINE terbaru.");
+                            replyToUser(replyToken, "Kamu belum mengupdate versi linemu ke yang paling baru. Update linemu terlebih dahulu.");
                         } else {
                             if (currentGroup != null) {
                                 if (currentGroup.GAME_STATUS == 0) {
@@ -323,26 +322,27 @@ public class LineBotController
                     if (msgText.equalsIgnoreCase("/mulai")) {
                         if(userId == null){
                             replyToUser(replyToken, "Kamu belum mengupdate versi linemu ke yang paling baru. Update linemu terlebih dahulu.");
-                        }
-                        if (currentGroup != null) {
-                            if (currentGroup.GAME_STATUS == 0) {
-                                replyToUser(replyToken, "Belum ada permainan yang dibuat. Ketik /listgame untuk melihat game yang tersedia.");
-                            } else {
-                                User user = getUserProfile(userId);
-                                if (user != null) {
-                                    if(currentGroup.GAME_STATUS != 2){
-                                        if (checkGameRequirement(currentGroup)) {
-                                            replyToUser(replyToken, "Memulai game...");
-                                            currentGroup.GAME_STATUS = 2;
-                                            currentGroup.GAME_JUST_BEGIN = 1;
+                        } else {
+                            if (currentGroup != null) {
+                                if (currentGroup.GAME_STATUS == 0) {
+                                    replyToUser(replyToken, "Belum ada permainan yang dibuat. Ketik /listgame untuk melihat game yang tersedia.");
+                                } else {
+                                    User user = getUserProfile(userId);
+                                    if (user != null) {
+                                        if(currentGroup.GAME_STATUS != 2){
+                                            if (checkGameRequirement(currentGroup)) {
+                                                replyToUser(replyToken, "Memulai game...");
+                                                currentGroup.GAME_STATUS = 2;
+                                                currentGroup.GAME_JUST_BEGIN = 1;
+                                            } else {
+                                                replyToUser(replyToken, "Belum ada cukup pemain untuk memulai game.");
+                                            }
                                         } else {
-                                            replyToUser(replyToken, "Belum ada cukup pemain untuk memulai game.");
+                                            replyToUser(replyToken, "Game telah dimulai.");
                                         }
                                     } else {
-                                        replyToUser(replyToken, "Game telah dimulai.");
+                                        replyToUser(replyToken, "Kamu belum menambahkan bot sebagai teman. Silahkan tambahkan bot sebagai teman dahulu.");
                                     }
-                                } else {
-                                    replyToUser(replyToken, "Kamu belum menambahkan bot sebagai teman. Silahkan tambahkan bot sebagai teman dahulu.");
                                 }
                             }
                         }
@@ -531,6 +531,8 @@ public class LineBotController
                     }
                 }
 
+            } else {
+                System.out.println("Unknown message.");
             }
         }
 
@@ -750,8 +752,7 @@ public class LineBotController
                             }
                             else {
                                 if (currentPlayer.getPosition() > 100) {
-                                    int mundur = currentPlayer.getPosition() - 100;
-                                    currentPlayer.setPosition(currentPlayer.getPosition() - mundur);
+                                    currentPlayer.setPosition(currentPlayer.getPosition() - (currentPlayer.getPosition() - 100));
                                     pushMessage(group.getId(), "Hasil kocokan dadu untuk maju melebihi 100 karenanya " + currentPlayer.getName() + " mundur lagi ke " + currentPlayer.getPosition());
                                 } else if (currentPlayer.getPosition() == 100) {
                                     pushMessage(group.getId(), currentPlayer.getName() + " berhasil memenangkan game karena mencapai kotak nomor 100.");
