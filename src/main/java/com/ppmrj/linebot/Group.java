@@ -35,7 +35,7 @@ public class Group {
 
     static Object[][] gameList = {
             {0, "Mafia", 4, 20, 120, 60}, // ID, Game name, Minimum player, Maximum player, Pregame time, Roll time
-            {1, "Ular tangga", 2, 4, 120, 10}
+            {1, "Ular tangga", 2, 4, 120, 40}
     };
 
     static Object[][] diceSymbol = {

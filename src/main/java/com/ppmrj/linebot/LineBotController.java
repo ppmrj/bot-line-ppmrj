@@ -32,6 +32,7 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.*;
 import java.util.List;
@@ -426,54 +427,7 @@ public class LineBotController
                                                         "api_key", "914939112251975",
                                                         "api_secret", "mTgyRz24r8OTMOYDRSPiCC2vQ4o"));
                                                 try {
-                                                    BufferedImage map = ImageIO.read(new URL(currentGroup.MAP_URL));
-
-                                                    BufferedImage[] playerAvatar = new BufferedImage[currentGroup.playerList.size()];
-                                                    int w = map.getWidth();
-                                                    int h = map.getHeight();
-                                                    System.out.println("WIDTH: "+w+" HEIGHT: "+h);
-                                                    BufferedImage combined = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
-
-                                                    int lastPosX=0, lastPosY=0, currentPosX, currentPosY, playerCount=0;
-                                                    User currentPlayer;
-
-                                                    Graphics graphics = combined.getGraphics();
-                                                    graphics.drawImage(map, 0, 0, null);
-                                                    for(int i=0; i<currentGroup.playerList.size(); i++){
-                                                        currentPlayer = currentGroup.playerList.get(i);
-                                                        playerAvatar[i] = resize(new URL(currentPlayer.getPictureUrl()), new Dimension((map.getWidth()/10)/ 2, (map.getHeight()/10) / 2));
-                                                        int[] imageCoordinate = getImageCoordinateFromPosition(currentPlayer.getPosition(), map, 2, 5);
-                                                        currentPosX = imageCoordinate[0];
-                                                        currentPosY = imageCoordinate[1];
-                                                        System.out.println(currentPlayer.getName()+"'s Coordinate: X: "+currentPosX
-                                                                +" || Y: "+currentPosY+" || ROW: "+checkPosition(currentPlayer.getPosition()));
-
-                                                        if(lastPosX == currentPosX && lastPosY == currentPosY && playerCount == 1){
-                                                            graphics.drawImage(playerAvatar[i], currentPosX+((map.getWidth()/10)/2), currentPosY, null);
-                                                            playerCount++;
-                                                        } else if(lastPosX == currentPosX && lastPosY == currentPosY && playerCount == 2){
-                                                            graphics.drawImage(playerAvatar[i], currentPosX, currentPosY+((map.getHeight()/10)/2), null);
-                                                            playerCount++;
-                                                        } else if(lastPosX == currentPosX && lastPosY == currentPosY && playerCount == 3){
-                                                            graphics.drawImage(playerAvatar[i], currentPosX+((map.getWidth()/10)/2), currentPosY+((map.getHeight()/10)/2), null);
-                                                            playerCount++;
-                                                        } else {
-                                                            graphics.drawImage(playerAvatar[i], currentPosX, currentPosY, null);
-                                                            playerCount++;
-                                                        }
-                                                        lastPosX = currentPosX;
-                                                        lastPosY = currentPosY;
-                                                    }
-                                                    File finalFile = new File("final.png");
-                                                    ImageIO.write(combined, "PNG", finalFile);
-                                                    Map uploadResult = cloudinary.uploader().upload(finalFile, ObjectUtils.asMap(
-                                                            "public_id", "ulartangga_"+currentGroup.getId()
-                                                    ));
-                                                    Gson gson2 = new GsonBuilder().create();
-                                                    String json = gson2.toJson(uploadResult);
-                                                    ImageResponse imageResponse = gson.fromJson(json, ImageResponse.class);
-                                                    pushImage(groupid, imageResponse.secure_url);
-                                                    currentGroup.ANTI_SPAM_MAP=30;
+                                                    showMap(currentGroup, cloudinary);
                                                 } catch (IOException e) {
                                                     e.printStackTrace();
                                                 }
@@ -672,7 +626,7 @@ public class LineBotController
                     {90, 91}
             };
             int[][] snakeArray = {
-                    {17, 3},
+                    {17, 13},
                     {52, 29},
                     {57, 40},
                     {62, 22},
@@ -785,6 +739,15 @@ public class LineBotController
                         }
                         group.ANTI_SPAM_MAP--;
                     } else if(group.GAME_STATUS == 3){
+                        Cloudinary cloudinary = new Cloudinary(ObjectUtils.asMap(
+                            "cloud_name", "biglebomb",
+                            "api_key", "914939112251975",
+                            "api_secret", "mTgyRz24r8OTMOYDRSPiCC2vQ4o"));
+                        try {
+                            showMap(group, cloudinary);
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
                         pushMessage(group.getId(), "Game telah berakhir.");
                         group.playerList.clear();
                         group.GAME_STATUS = 0;
@@ -792,6 +755,58 @@ public class LineBotController
                 }
             },0, 1000);
         }
+    }
+
+    public void showMap(Group group, Cloudinary cloudinary) throws IOException {
+        Gson gson = new Gson();
+        BufferedImage map = ImageIO.read(new URL(group.MAP_URL));
+
+        BufferedImage[] playerAvatar = new BufferedImage[group.playerList.size()];
+        int w = map.getWidth();
+        int h = map.getHeight();
+        System.out.println("WIDTH: "+w+" HEIGHT: "+h);
+        BufferedImage combined = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
+
+        int lastPosX=0, lastPosY=0, currentPosX, currentPosY, playerCount=0;
+        User currentPlayer;
+
+        Graphics graphics = combined.getGraphics();
+        graphics.drawImage(map, 0, 0, null);
+        for(int i=0; i<group.playerList.size(); i++){
+            currentPlayer = group.playerList.get(i);
+            playerAvatar[i] = resize(new URL(currentPlayer.getPictureUrl()), new Dimension((map.getWidth()/10)/ 2, (map.getHeight()/10) / 2));
+            int[] imageCoordinate = getImageCoordinateFromPosition(currentPlayer.getPosition(), map, 2, 5);
+            currentPosX = imageCoordinate[0];
+            currentPosY = imageCoordinate[1];
+            System.out.println(currentPlayer.getName()+"'s Coordinate: X: "+currentPosX
+                    +" || Y: "+currentPosY+" || ROW: "+checkPosition(currentPlayer.getPosition()));
+
+            if(lastPosX == currentPosX && lastPosY == currentPosY && playerCount == 1){
+                graphics.drawImage(playerAvatar[i], currentPosX+((map.getWidth()/10)/2), currentPosY, null);
+                playerCount++;
+            } else if(lastPosX == currentPosX && lastPosY == currentPosY && playerCount == 2){
+                graphics.drawImage(playerAvatar[i], currentPosX, currentPosY+((map.getHeight()/10)/2), null);
+                playerCount++;
+            } else if(lastPosX == currentPosX && lastPosY == currentPosY && playerCount == 3){
+                graphics.drawImage(playerAvatar[i], currentPosX+((map.getWidth()/10)/2), currentPosY+((map.getHeight()/10)/2), null);
+                playerCount++;
+            } else {
+                graphics.drawImage(playerAvatar[i], currentPosX, currentPosY, null);
+                playerCount++;
+            }
+            lastPosX = currentPosX;
+            lastPosY = currentPosY;
+        }
+        File finalFile = new File("final.png");
+        ImageIO.write(combined, "PNG", finalFile);
+        Map uploadResult = cloudinary.uploader().upload(finalFile, ObjectUtils.asMap(
+                "public_id", "ulartangga_"+group.getId()
+        ));
+        Gson gson2 = new GsonBuilder().create();
+        String json = gson2.toJson(uploadResult);
+        ImageResponse imageResponse = gson.fromJson(json, ImageResponse.class);
+        pushImage(group.getId(), imageResponse.secure_url);
+        group.ANTI_SPAM_MAP=30;
     }
 
     public Boolean checkGameRequirement(Group group){
