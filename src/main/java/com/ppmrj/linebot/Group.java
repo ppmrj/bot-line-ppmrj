@@ -38,6 +38,15 @@ public class Group {
             {1, "Ular tangga", 2, 4, 120, 10}
     };
 
+    static Object[][] diceSymbol = {
+            {0, "⚀"},
+            {1, "⚁"},
+            {2, "⚂"},
+            {3, "⚃"},
+            {4, "⚄"},
+            {5, "⚅"}
+    };
+
     public Group(String id, int GAME_STATUS, int GAME_ID) {
         this.id = id;
         this.GAME_STATUS = GAME_STATUS;

@@ -6,7 +6,6 @@ import com.cloudinary.utils.ObjectUtils;
 import com.linecorp.bot.model.action.MessageAction;
 import com.ppmrj.linebot.Responses.ImageResponse;
 import com.ppmrj.linebot.Responses.InfoResponse;
-import com.ppmrj.linebot.Responses.RegistrasiResponse;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.linecorp.bot.client.LineMessagingServiceBuilder;
@@ -50,21 +49,6 @@ public class LineBotController
     @Autowired
     @Qualifier("com.linecorp.channel_access_token")
     String lChannelAccessToken;
-
-    @RequestMapping(value="/newregistration", method=RequestMethod.POST)
-    public ResponseEntity<String> newRegistration(
-            @RequestBody String infoSantri
-    ){
-        if(infoSantri != null && infoSantri.length() > 0){
-            System.out.println("Data santri: "+infoSantri);
-        }
-
-        Gson gson = new Gson();
-        RegistrasiResponse registrasiResponse = gson.fromJson(infoSantri, RegistrasiResponse.class);
-
-        pushMessage(groups.get(0).getId(), "Santri baru dengan nama: "+registrasiResponse.nama+" telah melakukan pendaftaran di website. ID Pendaftara: "+registrasiResponse.id);
-        return new ResponseEntity<String>(HttpStatus.OK);
-    }
 
     @RequestMapping(value="/sendinfo", method=RequestMethod.POST)
     public ResponseEntity<String> info(
@@ -298,21 +282,25 @@ public class LineBotController
                                 if (currentGroup.GAME_STATUS == 0) {
                                     replyToUser(replyToken, "Belum ada permainan yang dibuat. Ketik /listgame untuk melihat game yang tersedia.");
                                 } else {
-                                    User user = getUserProfile(userId);
-                                    if (user != null) {
-                                        if(checkIfUserJoined(userId, currentGroup.playerList)){
-                                            replyToUser(replyToken, "Kamu sudah tergabung ke dalam game, "+user.getName()+".");
+                                    if (currentGroup.GAME_STATUS != 0) {
+                                        User user = getUserProfile(userId);
+                                        if (user != null) {
+                                            if(checkIfUserJoined(userId, currentGroup.playerList)){
+                                                replyToUser(replyToken, "Kamu sudah tergabung ke dalam game, "+user.getName()+".");
+                                            } else {
+                                                int gameId = currentGroup.GAME_ID;
+                                                currentGroup.addPlayerToList(user);
+                                                pushMessage(groupid, user.getName() + " bergabung ke permainan " + Group.gameList[gameId][1].toString() +
+                                                        "\n\n" + currentGroup.playerList.size() + " pemain telah tergabung.");
+                                                if(currentGroup.playerList.size() == (int) Group.gameList[currentGroup.GAME_ID][3]){
+                                                    currentGroup.GAME_STATUS = 1;
+                                                }
+                                            }
                                         } else {
-                                            int gameId = currentGroup.GAME_ID;
-                                            currentGroup.addPlayerToList(user);
-                                            pushMessage(groupid, user.getName() + " bergabung ke permainan " + Group.gameList[gameId][1].toString() +
-                                                    "\n\n" + currentGroup.playerList.size() + " pemain telah tergabung.");
-                                        }
-                                        if(currentGroup.playerList.size() == (int) Group.gameList[currentGroup.GAME_ID][3]){
-                                            currentGroup.GAME_STATUS = 1;
+                                            replyToUser(replyToken, "Kamu belum menambahkan bot sebagai teman. Silahkan tambahkan bot sebagai teman dahulu.");
                                         }
                                     } else {
-                                        replyToUser(replyToken, "Kamu belum menambahkan bot sebagai teman. Silahkan tambahkan bot sebagai teman dahulu.");
+                                        replyToUser(replyToken, "Game sudah dimulai.");
                                     }
                                 }
                             }
@@ -712,7 +700,7 @@ public class LineBotController
                             ButtonsTemplate buttonsTemplate = new ButtonsTemplate(null, "Gabung ke permainan", "Game akan dimulai dalam waktu 30 detik. Ketik /join untuk bergabung.", Arrays.asList(new MessageAction("Gabung", "/join")));
                             buttonMessage(group.getId(), buttonsTemplate);
                         }
-                        else if (group.PREGAME_TIME == 0 && group.playerList.size() >= (Integer) Group.gameList[group.GAME_ID][2]){
+                        else if (group.PREGAME_TIME == 0 && group.playerList.size() >= (int) Group.gameList[group.GAME_ID][2]){
                             pushMessage(group.getId(), "Game "+group.getGameName(group.GAME_ID)+" dimulai dengan "+group.playerList.size()+" pemain");
                             group.GAME_STATUS = 2;
                             group.GAME_JUST_BEGIN = 1;
@@ -738,29 +726,31 @@ public class LineBotController
                         }
                         group.GAME_JUST_BEGIN = 0;
                         if(currentPlayer.getDiceRollStatus() == 1) {
-                            pushMessage(group.getId(), currentPlayer.getName() + " telah mengocok dadu dan hasilnya adalah " + currentPlayer.getDiceNumber());
+                            String msg = "";
+                            msg += currentPlayer.getName() + " telah mengocok dadu dan hasilnya adalah " + currentPlayer.getDiceNumber()+".\n";
                             currentPlayer.setPosition(currentPlayer.getPosition() + currentPlayer.getDiceNumber());
                             if(isInLadderColumn(currentPlayer.getPosition(), ladderArray)){
                                 System.out.println(currentPlayer.getName()+" berhenti di tangga.");
-                                pushMessage(group.getId(), currentPlayer.getName() + " berhenti di kolom tangga dan naik ke kolom nomor "+getLadderData(currentPlayer.getPosition(), ladderArray));
+                                msg += currentPlayer.getName() + " berhenti di kolom tangga dan naik ke kolom nomor "+getLadderData(currentPlayer.getPosition(), ladderArray);
                                 currentPlayer.setPosition(getLadderData(currentPlayer.getPosition(), ladderArray));
 
                             } else if(isInSnakeColumn(currentPlayer.getPosition(), snakeArray)){
                                 System.out.println(currentPlayer.getName()+" berhenti di ular.");
-                                pushMessage(group.getId(), currentPlayer.getName() + " berhenti di kolom ular dan turun ke kolom nomor "+getSnakeData(currentPlayer.getPosition(), snakeArray));
+                                msg += currentPlayer.getName() + " berhenti di kolom ular dan turun ke kolom nomor "+getSnakeData(currentPlayer.getPosition(), snakeArray);
                                 currentPlayer.setPosition(getSnakeData(currentPlayer.getPosition(), snakeArray));
                             }
                             else {
                                 if (currentPlayer.getPosition() > 100) {
                                     currentPlayer.setPosition(currentPlayer.getPosition() - (currentPlayer.getPosition() - 100));
-                                    pushMessage(group.getId(), "Hasil kocokan dadu untuk maju melebihi 100 karenanya " + currentPlayer.getName() + " mundur lagi ke " + currentPlayer.getPosition());
+                                    msg += "Hasil kocokan dadu untuk maju melebihi 100 karenanya " + currentPlayer.getName() + " mundur lagi ke " + currentPlayer.getPosition();
                                 } else if (currentPlayer.getPosition() == 100) {
-                                    pushMessage(group.getId(), currentPlayer.getName() + " berhasil memenangkan game karena mencapai kotak nomor 100.");
+                                    msg += currentPlayer.getName() + " berhasil memenangkan game karena mencapai kotak nomor 100.";
                                     group.GAME_STATUS = 3;
-                                } else if (currentPlayer.getPosition() < 100){
-                                    pushMessage(group.getId(), currentPlayer.getName() + " maju " + currentPlayer.getDiceNumber() + " langkah ke kotak nomor " + currentPlayer.getPosition());
+                                } else {
+                                    msg += currentPlayer.getName() + " maju " + currentPlayer.getDiceNumber() + " langkah ke kotak nomor " + currentPlayer.getPosition();
                                 }
                             }
+                            pushMessage(group.getId(), msg);
                             currentPlayer.setDiceRollStatus(0);
                             if(currentPlayer.getDiceNumber() == 6){
                                 group.ROLLING_TIME = ROLLING_TIME_DEFAULT;
