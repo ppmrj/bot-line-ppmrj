@@ -645,27 +645,6 @@ public class LineBotController
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
-
-    private Group isGroupRegistered(String groupId){
-        Group[] group = new Group[1];
-        Call<Group> call = webAPI.getGrup(groupId);
-        call.enqueue(new Callback<Group>() {
-            @Override
-            public void onResponse(Call<Group> call, Response<Group> response) {
-                if(response.body() != null) {
-                    group[0] = response.body();
-                } else
-                    group[0] = null;
-            }
-
-            @Override
-            public void onFailure(Call<Group> call, Throwable t) {
-                t.printStackTrace();
-            }
-        });
-        return group[0];
-    }
-
     private String joinString(int start, String[] string){
         String msg="";
         for(int i=start; i<string.length; i++){
