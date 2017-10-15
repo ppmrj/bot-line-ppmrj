@@ -11,7 +11,7 @@ public interface WebAPI {
     Call<GroupResponse> registerGroup(@Path("nama") String nama, @Body Group group);
 
     @GET("grup/{id}")
-    Call<SingleGroupResponse> getGrup(@Path("id") String id);
+    Call<Group> getGrup(@Path("id") String id);
 
     @DELETE("grup/{id}")
     Call<GroupResponse> unregisterGrup(@Path("id") String id);

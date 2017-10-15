@@ -23,7 +23,6 @@ import com.linecorp.bot.model.response.BotApiResponse;
 import com.ppmrj.linebot.Web_API.Model.DivisiResponse;
 import com.ppmrj.linebot.Web_API.Model.Group;
 import com.ppmrj.linebot.Web_API.Model.GroupResponse;
-import com.ppmrj.linebot.Web_API.Model.SingleGroupResponse;
 import com.ppmrj.linebot.Web_API.WebAPI;
 import com.ppmrj.linebot.Web_API.WebAPIClient;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -150,7 +149,7 @@ public class LineBotController
                                 if (command.equalsIgnoreCase("grup")) {
                                     if (cmd.length == 3) {
                                         String nama_divisi = cmd[2];
-                                        Group group = new Group(groupid, "Group " + nama_divisi, "disabled", "none", nama_divisi);
+                                        Group group = new Group(groupid, "Group " + nama_divisi, "disabled", "none");
                                         Call<GroupResponse> call = webAPI.registerGroup(nama_divisi, group);
                                         call.enqueue(new Callback<GroupResponse>() {
                                             @Override
@@ -226,12 +225,11 @@ public class LineBotController
                         if (cmd.length > 1) {
                             if (cmd[0].equalsIgnoreCase("/kirimpesan")) {
                                 if (cmd.length > 2) {
-                                    Call<SingleGroupResponse> getGrup = webAPI.getGrup(groupid);
-                                    getGrup.enqueue(new Callback<SingleGroupResponse>() {
+                                    Call<Group> getGrup = webAPI.getGrup(groupid);
+                                    getGrup.enqueue(new Callback<Group>() {
                                         @Override
-                                        public void onResponse(Call<SingleGroupResponse> call, Response<SingleGroupResponse> response) {
-                                            SingleGroupResponse sgr = response.body();
-                                            Group group = new Group(sgr.getId(), sgr.getId_grup_line(), sgr.getNama(), sgr.getStatus_game(), sgr.getTipe_grup(), sgr.getId_divisi(), sgr.getDivisi());
+                                        public void onResponse(Call<Group> call, Response<Group> response) {
+                                            Group group = response.body();
                                             System.out.println(group.getDivisi());
                                             String nama_divisi = cmd[1];
                                             Call<GroupResponse> getDivisiGroup = webAPI.getDivisiGrup(nama_divisi);
@@ -244,7 +242,7 @@ public class LineBotController
                                                             System.out.println(msg);
                                                             ArrayList<Group> groupList = response.body().getResult();
                                                             for (Group aGroup : groupList) {
-                                                                pushMessage(aGroup.getId_grup_line(), msg + "- Dari: " + group.getDivisi());
+                                                                pushMessage(aGroup.getId_grup_line(), msg + "- Dari: " + group.getNama());
                                                             }
                                                             replyToUser(replyToken, "Saya telah mengirim pesan ke seluruh group divisi " + nama_divisi + ".\nDivisi " + nama_divisi + " memiliki jumlah group: " + groupList.size());
                                                         } else {
@@ -263,7 +261,7 @@ public class LineBotController
                                         }
 
                                         @Override
-                                        public void onFailure(Call<SingleGroupResponse> call, Throwable t) {
+                                        public void onFailure(Call<Group> call, Throwable t) {
 
                                         }
                                     });
