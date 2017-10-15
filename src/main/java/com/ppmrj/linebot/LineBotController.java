@@ -266,12 +266,12 @@ public class LineBotController
                         }
                     }
 
-                    Group currentGroup = isGroupRegistered(groupid);
-
-                    if (searchGameByGroupId(groupid) == null) {
-                        Game game = new Game(groupid, 0, 0);
-                        games.add(game);
-                    }
+//                    Group currentGroup = isGroupRegistered(groupid);
+//
+//                    if (searchGameByGroupId(groupid) == null) {
+//                        Game game = new Game(groupid, 0, 0);
+//                        games.add(game);
+//                    }
                     Game currentGame = searchGameByGroupId(groupid);
 
                     if (msgText.equalsIgnoreCase("/credit")) {
@@ -283,23 +283,23 @@ public class LineBotController
                                 "Dibuat oleh Divisi IT PPM RJ.");
                     }
 
-                    if (currentGroup != null) {
-                        if (msgText.contains("/modegame")) {
-                            String[] cmd = msgText.split("\\s");
-                            if (cmd.length > 1) {
-                                if (cmd[0].equalsIgnoreCase("/modegame")) {
-                                    String command = cmd[1];
-                                    if (command.equalsIgnoreCase("on")) {
-                                        currentGroup.setStatus_game("enabled");
-                                    } else if (command.equalsIgnoreCase("off")) {
-                                        currentGroup.setStatus_game("disabled");
-                                    } else {
-                                        replyToUser(replyToken, "Penggunaan: /modegame <on/off>");
-                                    }
-                                }
-                            }
-                        }
-                        if (currentGroup.getStatus_game().equalsIgnoreCase("enabled")) {
+//                    if (currentGroup != null) {
+//                        if (msgText.contains("/modegame")) {
+//                            String[] cmd = msgText.split("\\s");
+//                            if (cmd.length > 1) {
+//                                if (cmd[0].equalsIgnoreCase("/modegame")) {
+//                                    String command = cmd[1];
+//                                    if (command.equalsIgnoreCase("on")) {
+//                                        currentGroup.setStatus_game("enabled");
+//                                    } else if (command.equalsIgnoreCase("off")) {
+//                                        currentGroup.setStatus_game("disabled");
+//                                    } else {
+//                                        replyToUser(replyToken, "Penggunaan: /modegame <on/off>");
+//                                    }
+//                                }
+//                            }
+//                        }
+//                        if (currentGroup.getStatus_game().equalsIgnoreCase("enabled")) {
                             if (msgText.equalsIgnoreCase("/listgame")) {
                                 StringBuilder listGame = new StringBuilder();
                                 for (int i = 0; i < Game.gameList.length; i++) {
@@ -600,12 +600,13 @@ public class LineBotController
                                     }
                                 }
                             }
-                        } else {
-                            replyToUser(replyToken, "Mode game belum diaktifkan. Gunakan /modegame <on/off>.");
-                        }
-                    } else {
-                        replyToUser(replyToken, "Group belum terdaftar.");
-                    }
+//                        }
+//                        else {
+//                            replyToUser(replyToken, "Mode game belum diaktifkan. Gunakan /modegame <on/off>.");
+//                        }
+//                    } else {
+//                        replyToUser(replyToken, "Group belum terdaftar.");
+//                    }
 
 
                     if (!msgText.contains("bot leave")) {
@@ -630,6 +631,7 @@ public class LineBotController
         }
         return new ResponseEntity<>(HttpStatus.OK);
     }
+
 
     private Group isGroupRegistered(String groupId){
         final Group[] group = new Group[1];
