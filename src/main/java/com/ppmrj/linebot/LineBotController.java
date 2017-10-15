@@ -142,15 +142,14 @@ public class LineBotController
 //                        }
 //                    }
 
-//                    if (searchGameByGroupId(groupid) == null) {
-//                        Game game = new Game(groupid, 0, 0);
-//                        games.add(game);
-//                    }
-
 
                     Group currentGroup = isGroupRegistered(groupid);
 
-                    Game currentGame = searchGameByGroupId(currentGroup.getId_grup_line());
+                    if (searchGameByGroupId(groupid) == null) {
+                        Game game = new Game(groupid, 0, 0);
+                        games.add(game);
+                    }
+                    Game currentGame = searchGameByGroupId(groupid);
 
                     if (msgText.equalsIgnoreCase("/credit")) {
                         pushMessage(groupid, "Bot PPM RJ" +
