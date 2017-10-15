@@ -225,38 +225,49 @@ public class LineBotController
                         if (cmd.length > 1) {
                             if (cmd[0].equalsIgnoreCase("/kirimpesan")) {
                                 if (cmd.length > 2) {
-                                    Group group = isGroupRegistered(groupid);
-                                    if (group.getId_grup_line() != null) {
-                                        String nama_divisi = cmd[1];
-                                        Call<GroupResponse> call = webAPI.getDivisiGrup(nama_divisi);
-                                        call.enqueue(new Callback<GroupResponse>() {
-                                            @Override
-                                            public void onResponse(Call<GroupResponse> call, Response<GroupResponse> response) {
-                                                if (response.body().isSuccess()) {
-                                                    if (cmd.length >= 3) {
-                                                        String msg = joinString(2, cmd);
-                                                        System.out.println(msg);
-                                                        ArrayList<Group> groupList = response.body().getResult();
-                                                        for (Group aGroup : groupList) {
-                                                            pushMessage(aGroup.getId_grup_line(), msg + ". Dari: " + group.getDivisi());
+                                    Call<Group> getGrup = webAPI.getGrup(groupid);
+                                    getGrup.enqueue(new Callback<Group>() {
+                                        @Override
+                                        public void onResponse(Call<Group> call, Response<Group> response) {
+                                            Group group = response.body();
+                                            if (group != null) {
+                                                String nama_divisi = cmd[1];
+                                                Call<GroupResponse> getDivisiGroup = webAPI.getDivisiGrup(nama_divisi);
+                                                getDivisiGroup.enqueue(new Callback<GroupResponse>() {
+                                                    @Override
+                                                    public void onResponse(Call<GroupResponse> call, Response<GroupResponse> response) {
+                                                        if (response.body().isSuccess()) {
+                                                            if (cmd.length >= 3) {
+                                                                String msg = joinString(2, cmd);
+                                                                System.out.println(msg);
+                                                                ArrayList<Group> groupList = response.body().getResult();
+                                                                for (Group aGroup : groupList) {
+                                                                    pushMessage(aGroup.getId_grup_line(), msg + ". Dari: " + group.getDivisi());
+                                                                }
+                                                                replyToUser(replyToken, "Saya telah mengirim pesan ke seluruh group divisi " + nama_divisi + ".\nDivisi " + nama_divisi + " memiliki jumlah group: " + groupList.size());
+                                                            } else {
+                                                                replyToUser(replyToken, "Penggunaan: /kirimpesan <namaDivisi> <pesan>");
+                                                            }
+                                                        } else {
+                                                            replyToUser(replyToken, response.body().getMessage());
                                                         }
-                                                        replyToUser(replyToken, "Saya telah mengirim pesan ke seluruh group divisi " + nama_divisi + ".\nDivisi " + nama_divisi + " memiliki jumlah group: " + groupList.size());
-                                                    } else {
-                                                        replyToUser(replyToken, "Penggunaan: /kirimpesan <namaDivisi> <pesan>");
                                                     }
-                                                } else {
-                                                    replyToUser(replyToken, response.body().getMessage());
-                                                }
-                                            }
 
-                                            @Override
-                                            public void onFailure(Call<GroupResponse> call, Throwable t) {
-                                                t.printStackTrace();
+                                                    @Override
+                                                    public void onFailure(Call<GroupResponse> call, Throwable t) {
+                                                        t.printStackTrace();
+                                                    }
+                                                });
+                                            } else {
+                                                replyToUser(replyToken, "Game ini belum terdaftar kedalam database, silahkan daftarkan group dulu ke database dengan /register.");
                                             }
-                                        });
-                                    } else {
-                                        replyToUser(replyToken, "Game ini belum terdaftar kedalam database, silahkan daftarkan group dulu ke database dengan /register.");
-                                    }
+                                        }
+
+                                        @Override
+                                        public void onFailure(Call<Group> call, Throwable t) {
+
+                                        }
+                                    });
                                 } else {
                                     replyToUser(replyToken, "Penggunaan: /kirimpesan <namaDivisi> <pesan>");
                                 }
@@ -641,7 +652,8 @@ public class LineBotController
             public void onResponse(Call<Group> call, Response<Group> response) {
                 if(response.body() != null) {
                     group[0] = response.body();
-                }
+                } else
+                    group[0] = null;
             }
 
             @Override
