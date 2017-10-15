@@ -19,6 +19,6 @@ public interface WebAPI {
     @POST("divisi")
     Call<DivisiResponse> addDivisi(@Body String nama);
 
-    @GET("divisi/{nama}/grup")
+    @GET("grup/divisi/{nama}")
     Call<GrupResponse> getDivisiGrup(@Path("nama") String nama);
 }
