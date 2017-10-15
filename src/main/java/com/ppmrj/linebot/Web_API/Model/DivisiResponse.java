@@ -5,9 +5,15 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.ArrayList;
 
 public class DivisiResponse {
-    @JsonProperty("success") private boolean success;
-    @JsonProperty("message") private String message;
-    @JsonProperty("result") private ArrayList<Divisi> result;
+    private boolean success;
+    private String message;
+    private ArrayList<Divisi> result;
+
+    public DivisiResponse(@JsonProperty("success") boolean success, @JsonProperty("message") String message, @JsonProperty("result") ArrayList<Divisi> result) {
+        this.success = success;
+        this.message = message;
+        this.result = result;
+    }
 
     public boolean isSuccess() {
         return success;
