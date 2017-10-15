@@ -226,7 +226,7 @@ public class LineBotController
                             if (cmd[0].equalsIgnoreCase("/kirimpesan")) {
                                 if (cmd.length > 2) {
                                     Group group = isGroupRegistered(groupid);
-                                    if (group.getId_grup_line() == null) {
+                                    if (group.getId_grup_line() != null) {
                                         String nama_divisi = cmd[1];
                                         Call<GroupResponse> call = webAPI.getDivisiGrup(nama_divisi);
                                         call.enqueue(new Callback<GroupResponse>() {
@@ -634,18 +634,18 @@ public class LineBotController
 
 
     private Group isGroupRegistered(String groupId){
-        final Group[] group = new Group[1];
-        Call<GroupResponse> call = webAPI.getGrup(groupId);
-        call.enqueue(new Callback<GroupResponse>() {
+        Group[] group = new Group[1];
+        Call<Group> call = webAPI.getGrup(groupId);
+        call.enqueue(new Callback<Group>() {
             @Override
-            public void onResponse(Call<GroupResponse> call, Response<GroupResponse> response) {
-                if(response.body().isSuccess()){
-                    group[0] = response.body().getResult().get(0);
+            public void onResponse(Call<Group> call, Response<Group> response) {
+                if(response.body() != null) {
+                    group[0] = response.body();
                 }
             }
 
             @Override
-            public void onFailure(Call<GroupResponse> call, Throwable t) {
+            public void onFailure(Call<Group> call, Throwable t) {
                 t.printStackTrace();
             }
         });

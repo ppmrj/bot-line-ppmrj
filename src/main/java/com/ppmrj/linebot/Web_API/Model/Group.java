@@ -1,5 +1,7 @@
 package com.ppmrj.linebot.Web_API.Model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 public class Group {
     private int id;
     private String id_grup_line;
@@ -8,7 +10,6 @@ public class Group {
     private String tipe_grup;
     private int id_divisi;
     private String divisi;
-    private String message;
 
     public Group(String id_grup_line, String nama, String status_game, String tipe_grup) {
         this.id_grup_line = id_grup_line;
@@ -17,13 +18,21 @@ public class Group {
         this.tipe_grup = tipe_grup;
     }
 
-    public Group(int id, String id_grup_line, String nama, String status_game, String tipe_grup, int id_divisi) {
+    public Group(
+            @JsonProperty("id") int id,
+            @JsonProperty("id_grup_line") String id_grup_line,
+            @JsonProperty("nama") String nama,
+            @JsonProperty("status_game") String status_game,
+            @JsonProperty("tipe_grup") String tipe_grup,
+            @JsonProperty("id_divisi") int id_divisi,
+            @JsonProperty("divisi") String divisi) {
         this.id = id;
         this.id_grup_line = id_grup_line;
         this.nama = nama;
         this.status_game = status_game;
         this.tipe_grup = tipe_grup;
         this.id_divisi = id_divisi;
+        this.divisi = divisi;
     }
 
     public int getId() {
