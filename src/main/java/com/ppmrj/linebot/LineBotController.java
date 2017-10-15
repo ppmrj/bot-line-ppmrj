@@ -559,7 +559,7 @@ public class LineBotController
                                                         for (Grup aGrup : grupList) {
                                                             pushMessage(aGrup.getId_grup_line(), msg+". Dari: "+grup.getDivisi());
                                                         }
-                                                        replyToUser(replyToken, "Saya telah mengirim pesan ke seluruh grup divisi "+nama_divisi+".\nDivisi "+nama_divisi+" memiliki jumlah grup: "+grup.size());
+                                                        replyToUser(replyToken, "Saya telah mengirim pesan ke seluruh grup divisi "+nama_divisi+".\nDivisi "+nama_divisi+" memiliki jumlah grup: "+grupList.size());
                                                     } else {
                                                         replyToUser(replyToken, "Penggunaan: /kirimpesan <namaDivisi> <pesan>");
                                                     }
