@@ -472,12 +472,7 @@ public class LineBotController
                                     if(cmd.length == 3){
                                         String nama_divisi = cmd[2];
                                         Grup grup = new Grup(groupid, "Grup "+nama_divisi, "disabled", "none");
-                                        //                                            Response<GrupResponse> response = WebAPIClient
-//                                                    .create()
-//                                                    .build()
-//                                                    .registerGroup(grup)
-//                                                    .execute();
-                                        Call<GrupResponse> call = webAPI.registerGroup(grup);
+                                        Call<GrupResponse> call = webAPI.registerGroup(nama_divisi, grup);
                                         call.enqueue(new Callback<GrupResponse>() {
                                             @Override
                                             public void onResponse(Call<GrupResponse> call, Response<GrupResponse> response) {
@@ -501,11 +496,6 @@ public class LineBotController
                                 } else if(command.equalsIgnoreCase("divisi")){
                                     if(cmd.length == 3){
                                         String nama_divisi = cmd[2];
-                                        //                                            Response<DivisiResponse> response = WebAPIClient
-//                                                    .create()
-//                                                    .build()
-//                                                    .addDivisi(nama_divisi)
-//                                                    .execute();
                                         Call<DivisiResponse> call = webAPI.addDivisi(nama_divisi);
                                         call.enqueue(new Callback<DivisiResponse>() {
                                             @Override
@@ -538,17 +528,12 @@ public class LineBotController
                             if(cmd[0].equalsIgnoreCase("/kirimpesan")){
                                 if(cmd.length > 2){
                                     String nama_divisi = cmd[1];
-                                    //                                        Response<GrupResponse> response = WebAPIClient
-//                                                .create()
-//                                                .build()
-//                                                .getDivisiGrup(nama_divisi)
-//                                                .execute();
                                     Call<GrupResponse> call = webAPI.getDivisiGrup(nama_divisi);
                                     call.enqueue(new Callback<GrupResponse>() {
                                         @Override
                                         public void onResponse(Call<GrupResponse> call, Response<GrupResponse> response) {
                                             if(response.body().isSuccess()){
-                                                if(cmd.length > 3){
+                                                if(cmd.length >= 3){
                                                     String msg = joinString(2, cmd);
                                                     System.out.println(msg);
                                                     ArrayList<Grup> grup = response.body().getResult();
