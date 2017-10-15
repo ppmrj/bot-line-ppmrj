@@ -1,15 +1,16 @@
-package com.ppmrj.linebot.Web_API.Model;
+package com.ppmrj.linebot.Responses;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.ppmrj.linebot.Model.Group;
 
 import java.util.ArrayList;
 
-public class DivisiResponse {
+public class GroupResponse {
     private boolean success;
     private String message;
-    private ArrayList<Divisi> result;
+    private ArrayList<Group> result;
 
-    public DivisiResponse(@JsonProperty("success") boolean success, @JsonProperty("message") String message, @JsonProperty("result") ArrayList<Divisi> result) {
+    public GroupResponse(@JsonProperty("success") boolean success, @JsonProperty("message") String message, @JsonProperty("result") ArrayList<Group> result) {
         this.success = success;
         this.message = message;
         this.result = result;
@@ -23,7 +24,7 @@ public class DivisiResponse {
         return message;
     }
 
-    public ArrayList<Divisi> getResult() {
+    public ArrayList<Group> getResult() {
         return result;
     }
 }

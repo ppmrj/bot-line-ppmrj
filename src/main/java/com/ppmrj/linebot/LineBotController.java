@@ -20,11 +20,11 @@ import com.linecorp.bot.model.message.TextMessage;
 import com.linecorp.bot.model.message.template.ButtonsTemplate;
 import com.linecorp.bot.model.profile.UserProfileResponse;
 import com.linecorp.bot.model.response.BotApiResponse;
-import com.ppmrj.linebot.Web_API.Model.DivisiResponse;
-import com.ppmrj.linebot.Web_API.Model.Group;
-import com.ppmrj.linebot.Web_API.Model.GroupResponse;
-import com.ppmrj.linebot.Web_API.WebAPI;
-import com.ppmrj.linebot.Web_API.WebAPIClient;
+import com.ppmrj.linebot.Responses.DivisiResponse;
+import com.ppmrj.linebot.Model.Group;
+import com.ppmrj.linebot.Responses.GroupResponse;
+import com.ppmrj.linebot.WebAPI.WebAPI;
+import com.ppmrj.linebot.WebAPI.WebAPIClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
@@ -225,12 +225,15 @@ public class LineBotController
                         if (cmd.length > 1) {
                             if (cmd[0].equalsIgnoreCase("/kirimpesan")) {
                                 if (cmd.length > 2) {
-                                    Call<Group> getGrup = webAPI.getGrup(groupid);
-                                    getGrup.enqueue(new Callback<Group>() {
+                                    Call<GroupResponse> getGrup = webAPI.getGrup(groupid);
+                                    getGrup.enqueue(new Callback<GroupResponse>() {
                                         @Override
-                                        public void onResponse(Call<Group> call, Response<Group> response) {
-                                            Group group = response.body();
-                                            System.out.println(group.getDivisi());
+                                        public void onResponse(Call<GroupResponse> call, Response<GroupResponse> response) {
+                                            Group group = response.body().getResult().get(0);
+                                            System.out.println(group.getId()+ " | "
+                                            +group.getId_grup_line()+ " | "
+                                            +group.getNama()+" | "
+                                            +group.getDivisi());
                                             String nama_divisi = cmd[1];
                                             Call<GroupResponse> getDivisiGroup = webAPI.getDivisiGrup(nama_divisi);
                                             getDivisiGroup.enqueue(new Callback<GroupResponse>() {
@@ -261,7 +264,7 @@ public class LineBotController
                                         }
 
                                         @Override
-                                        public void onFailure(Call<Group> call, Throwable t) {
+                                        public void onFailure(Call<GroupResponse> call, Throwable t) {
 
                                         }
                                     });

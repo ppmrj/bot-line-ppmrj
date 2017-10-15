@@ -1,4 +1,4 @@
-package com.ppmrj.linebot.Web_API.Model;
+package com.ppmrj.linebot.Model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 

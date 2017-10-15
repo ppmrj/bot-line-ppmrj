@@ -1,7 +1,9 @@
-package com.ppmrj.linebot.Web_API;
+package com.ppmrj.linebot.WebAPI;
 
-import com.ppmrj.linebot.Web_API.Model.*;
+import com.ppmrj.linebot.Model.*;
 
+import com.ppmrj.linebot.Responses.DivisiResponse;
+import com.ppmrj.linebot.Responses.GroupResponse;
 import retrofit2.Call;
 import retrofit2.http.*;
 
@@ -11,7 +13,7 @@ public interface WebAPI {
     Call<GroupResponse> registerGroup(@Path("nama") String nama, @Body Group group);
 
     @GET("grup/{id}")
-    Call<Group> getGrup(@Path("id") String id);
+    Call<GroupResponse> getGrup(@Path("id") String id);
 
     @DELETE("grup/{id}")
     Call<GroupResponse> unregisterGrup(@Path("id") String id);
