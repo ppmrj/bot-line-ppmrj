@@ -7,12 +7,12 @@ import java.util.ArrayList;
 /**
  * Created by Asus on 10/15/2017.
  */
-public class GrupResponse {
+public class GroupResponse {
     private boolean success;
     private String message;
-    private ArrayList<Grup> result;
+    private ArrayList<Group> result;
 
-    public GrupResponse(@JsonProperty("success") boolean success, @JsonProperty("message") String message, @JsonProperty("result") ArrayList<Grup> result) {
+    public GroupResponse(@JsonProperty("success") boolean success, @JsonProperty("message") String message, @JsonProperty("result") ArrayList<Group> result) {
         this.success = success;
         this.message = message;
         this.result = result;
@@ -26,7 +26,7 @@ public class GrupResponse {
         return message;
     }
 
-    public ArrayList<Grup> getResult() {
+    public ArrayList<Group> getResult() {
         return result;
     }
 }

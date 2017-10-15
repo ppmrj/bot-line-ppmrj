@@ -21,8 +21,8 @@ import com.linecorp.bot.model.message.template.ButtonsTemplate;
 import com.linecorp.bot.model.profile.UserProfileResponse;
 import com.linecorp.bot.model.response.BotApiResponse;
 import com.ppmrj.linebot.Web_API.Model.DivisiResponse;
-import com.ppmrj.linebot.Web_API.Model.Grup;
-import com.ppmrj.linebot.Web_API.Model.GrupResponse;
+import com.ppmrj.linebot.Web_API.Model.Group;
+import com.ppmrj.linebot.Web_API.Model.GroupResponse;
 import com.ppmrj.linebot.Web_API.WebAPI;
 import com.ppmrj.linebot.Web_API.WebAPIClient;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,7 +47,7 @@ import java.util.List;
 @RequestMapping(value="/linebot")
 public class LineBotController
 {
-    ArrayList<Group> groups = new ArrayList<>();
+    ArrayList<Game> games = new ArrayList<>();
     WebAPI webAPI = WebAPIClient.getClient().create(WebAPI.class);
 
     @Autowired
@@ -69,7 +69,7 @@ public class LineBotController
         Gson gson = new Gson();
         InfoResponse infoResponse = gson.fromJson(infoData, InfoResponse.class);
 
-        pushMessage(groups.get(0).getId(), infoResponse.data);
+        pushMessage(games.get(0).getId(), infoResponse.data);
         return new ResponseEntity<String>(HttpStatus.OK);
     }
 
@@ -97,7 +97,7 @@ public class LineBotController
 
         if (eventType.equals("join")){
             if (payload.events[0].source.type.equals("group")){
-                replyToUser(payload.events[0].replyToken, "Hello Grup");
+                replyToUser(payload.events[0].replyToken, "Hello Group");
             }
             if (payload.events[0].source.type.equals("room")){
                 replyToUser(payload.events[0].replyToken, "Hello Room");
@@ -127,336 +127,371 @@ public class LineBotController
                     String groupid = payload.events[0].source.groupId;
                     String replyToken = payload.events[0].replyToken;
 
-                    if(msgText.contains("/addgrouptolist")){
-                        String[] cmd = msgText.split("\\s");
-                        if(cmd.length == 2){
-                            Group group = searchGroupById(groupid);
-                            if(group==null){
-                                groups.add(new Group(groupid, cmd[1]));
-                                replyToUser(replyToken, "Grup ini telah berhasil ditambahkan ke list dengan nama "+cmd[1]);
-                            }
-                            else
-                                replyToUser(replyToken, "Grup "+cmd[1]+ " sudah ada didalam list.");
-                        } else {
-                            replyToUser(replyToken, "Perintah salah. /addgrouptolist <nama>");
+//                    if(msgText.contains("/addgrouptolist")){
+//                        String[] cmd = msgText.split("\\s");
+//                        if(cmd.length == 2){
+//                            Game game = searchGameByGroupId(groupid);
+//                            if(game ==null){
+//                                games.add(new Game(groupid, cmd[1]));
+//                                replyToUser(replyToken, "Group ini telah berhasil ditambahkan ke list dengan nama "+cmd[1]);
+//                            }
+//                            else
+//                                replyToUser(replyToken, "Group "+cmd[1]+ " sudah ada didalam list.");
+//                        } else {
+//                            replyToUser(replyToken, "Perintah salah. /addgrouptolist <nama>");
+//                        }
+//                    }
+
+//                    if (searchGameByGroupId(groupid) == null) {
+//                        Game game = new Game(groupid, 0, 0);
+//                        games.add(game);
+//                    }
+
+                    Game currentGame = searchGameByGroupId(groupid);
+
+                    final Group[] groupResponse = new Group[0];
+                    Group currentGroup;
+
+                    Call<GroupResponse> getGroup = webAPI.getGrup(groupid);
+                    getGroup.enqueue(new Callback<GroupResponse>() {
+                        @Override
+                        public void onResponse(Call<GroupResponse> call, Response<GroupResponse> response) {
+                            groupResponse[0] = response.body().getResult().get(0);
                         }
-                    }
 
-                    if (searchGroupById(groupid) == null) {
-                        Group group = new Group(groupid, 0, 0);
-                        groups.add(group);
-                    }
+                        @Override
+                        public void onFailure(Call<GroupResponse> call, Throwable t) {
 
-                    if(msgText.equalsIgnoreCase("/sendpostback")){
+                        }
+                    });
 
-                    }
-
-                    Group currentGroup = searchGroupById(groupid);
+                    currentGroup = groupResponse[0];
 
                     if (msgText.equalsIgnoreCase("/credit")) {
                         pushMessage(groupid, "Bot PPM RJ" +
                                 "\n" +
-                                "V0.1b" +
+                                "V0.1a" +
                                 "\n" +
                                 "\n" +
                                 "Dibuat oleh Divisi IT PPM RJ.");
                     }
-                    if (msgText.equalsIgnoreCase("/listgame")) {
-                        StringBuilder listGame = new StringBuilder();
-                        for (int i = 0; i < Group.gameList.length; i++) {
-                            listGame.append(Group.gameList[i][1].toString()).append("\n");
-                        }
-                        replyToUser(replyToken, listGame.toString());
-                        pushMessage(groupid, "Untuk memulai game gunakan \n/main <nama game>.");
-                    }
-                    if (msgText.equalsIgnoreCase("/berhenti")) {
-                        if (currentGroup != null) {
-                            if (currentGroup.GAME_STATUS != 0) {
-                                currentGroup.GAME_STATUS = 3;
-                                replyToUser(replyToken, "Game " + currentGroup.getGameName(currentGroup.GAME_ID) + " telah diberhentikan.");
-                                currentGroup.GAME_ID = -1;
-                            } else {
-                                replyToUser(replyToken, "Tidak ada game yang sedang dimainkan.");
+
+                    if(currentGroup.getStatus_game().equalsIgnoreCase("enabled")){
+                        if (msgText.equalsIgnoreCase("/listgame")) {
+                            StringBuilder listGame = new StringBuilder();
+                            for (int i = 0; i < Game.gameList.length; i++) {
+                                listGame.append(Game.gameList[i][1].toString()).append("\n");
                             }
-                        } else {
-                            System.out.println("Grup unregistered.");
+                            replyToUser(replyToken, listGame.toString());
+                            pushMessage(groupid, "Untuk memulai game gunakan \n/main <nama game>.");
                         }
-                    }
-                    if (msgText.equalsIgnoreCase("/listpemain")) {
-                        if (currentGroup != null) {
-                            if (currentGroup.GAME_STATUS != 0) {
-                                StringBuilder listPlayer = new StringBuilder();
-                                int alive = 0;
-                                if (currentGroup.playerList != null) {
-                                    if (currentGroup.GAME_ID == 0) {
-                                        for (User user : currentGroup.playerList) {
-                                            if (currentGroup.GAME_STATUS != 2) {
-                                                listPlayer.append(user.getName()).append("\n");
-                                            } else {
-                                                listPlayer.append(user.getName()).append(" ").append(user.getRole()).append("\n");
+
+                        if (msgText.equalsIgnoreCase("/berhenti")) {
+                            if (currentGame != null) {
+                                if (currentGame.GAME_STATUS != 0) {
+                                    currentGame.GAME_STATUS = 3;
+                                    replyToUser(replyToken, "Game " + currentGame.getGameName(currentGame.GAME_ID) + " telah diberhentikan.");
+                                    currentGame.GAME_ID = -1;
+                                } else {
+                                    replyToUser(replyToken, "Tidak ada game yang sedang dimainkan.");
+                                }
+                            } else {
+                                System.out.println("Group unregistered.");
+                            }
+                        }
+
+                        if (msgText.equalsIgnoreCase("/listpemain")) {
+                            if (currentGame != null) {
+                                if (currentGame.GAME_STATUS != 0) {
+                                    StringBuilder listPlayer = new StringBuilder();
+                                    int alive = 0;
+                                    if (currentGame.playerList != null) {
+                                        if (currentGame.GAME_ID == 0) {
+                                            for (User user : currentGame.playerList) {
+                                                if (currentGame.GAME_STATUS != 2) {
+                                                    listPlayer.append(user.getName()).append("\n");
+                                                } else {
+                                                    listPlayer.append(user.getName()).append(" ").append(user.getRole()).append("\n");
+                                                }
+                                                if(!user.getStatus().equalsIgnoreCase("Terciduk")){
+                                                    alive++;
+                                                }
                                             }
-                                            if(!user.getStatus().equalsIgnoreCase("Terciduk")){
-                                                alive++;
+                                            replyToUser(replyToken, listPlayer.toString()+"\nPemain yang masih bermain: " + alive + "/" + currentGame.playerList.size()+".");
+                                        } else if(currentGame.GAME_ID == 1) {
+                                            for(User user : currentGame.playerList){
+                                                if(currentGame.GAME_STATUS != 2){
+                                                    listPlayer.append(user.getName()).append("\n");
+                                                } else {
+                                                    listPlayer.append(user.getName()).append(" - Posisi: ").append(user.getPosition()).append("\n");
+                                                }
                                             }
+                                            replyToUser(replyToken, listPlayer.toString()+"\nJumlah pemain: "+ currentGame.playerList.size()+".");
                                         }
-                                        replyToUser(replyToken, listPlayer.toString()+"\nPemain yang masih bermain: " + alive + "/" + currentGroup.playerList.size()+".");
-                                    } else if(currentGroup.GAME_ID == 1) {
-                                        for(User user : currentGroup.playerList){
-                                            if(currentGroup.GAME_STATUS != 2){
-                                                listPlayer.append(user.getName()).append("\n");
-                                            } else {
-                                                listPlayer.append(user.getName()).append(" - Posisi: ").append(user.getPosition()).append("\n");
-                                            }
-                                        }
-                                        replyToUser(replyToken, listPlayer.toString()+"\nJumlah pemain: "+currentGroup.playerList.size()+".");
+                                    } else {
+                                        replyToUser(replyToken, "Belum ada pemain yang join.");
                                     }
                                 } else {
-                                    replyToUser(replyToken, "Belum ada pemain yang join.");
+                                    replyToUser(replyToken, "Tidak ada game yang sedang dimainkan.");
                                 }
                             } else {
-                                replyToUser(replyToken, "Tidak ada game yang sedang dimainkan.");
+                                System.out.println("Group unregistered.");
                             }
-                        } else {
-                            System.out.println("Grup unregistered.");
                         }
-                    }
-                    if(msgText.equalsIgnoreCase("/main ulartangga")){
-                        if(userId == null){
-                            replyToUser(replyToken, "Kamu belum mengupdate versi linemu ke yang paling baru. Update linemu terlebih dahulu.");
-                        } else {
-                            if(currentGroup != null){
-                                if(currentGroup.GAME_STATUS == 0) {
-                                    User user = getUserProfile(userId);
-                                    if(user != null){
-                                        currentGroup.GAME_STATUS = 1;
-                                        currentGroup.GAME_ID = 1;
-                                        currentGroup.addPlayerToList(user);
-                                        pushMessage(groupid, user.getName() + " telah memulai permainan "+currentGroup.getGameName(currentGroup.GAME_ID)+". Ketik /join untuk bergabung. Game akan dimulai dalam "+currentGroup.PREGAME_TIME/60+" menit." +
-                                                "\n" +
-                                                "Minimal pemain: "+Group.gameList[currentGroup.GAME_ID][2]);
-                                        startGame(currentGroup);
+                        if(msgText.equalsIgnoreCase("/main ulartangga")){
+                            if(userId == null){
+                                replyToUser(replyToken, "Kamu belum mengupdate versi linemu ke yang paling baru. Update linemu terlebih dahulu.");
+                            } else {
+                                if(currentGame != null){
+                                    if(currentGame.GAME_STATUS == 0) {
+                                        User user = getUserProfile(userId);
+                                        if(user != null){
+                                            currentGame.GAME_STATUS = 1;
+                                            currentGame.GAME_ID = 1;
+                                            currentGame.addPlayerToList(user);
+                                            pushMessage(groupid, user.getName() + " telah memulai permainan "+ currentGame.getGameName(currentGame.GAME_ID)+". Ketik /join untuk bergabung. Game akan dimulai dalam "+ currentGame.PREGAME_TIME/60+" menit." +
+                                                    "\n" +
+                                                    "Minimal pemain: "+ Game.gameList[currentGame.GAME_ID][2]);
+                                            startGame(currentGame);
+                                        }
                                     }
                                 }
                             }
                         }
-                    }
-                    if (msgText.equalsIgnoreCase("/main mafia")) {
-                        if(userId == null){
-                            replyToUser(replyToken, "Kamu belum mengupdate versi linemu ke yang paling baru. Update linemu terlebih dahulu.");
-                        }
-                        if (currentGroup != null) {
-                            if (currentGroup.GAME_STATUS == 0) {
+                        if (msgText.equalsIgnoreCase("/main mafia")) {
+                            if(userId == null){
+                                replyToUser(replyToken, "Kamu belum mengupdate versi linemu ke yang paling baru. Update linemu terlebih dahulu.");
+                            }
+                            if (currentGame != null) {
+                                if (currentGame.GAME_STATUS == 0) {
+                                    User user = getUserProfile(userId);
+                                    if(user != null){
+                                        if (!user.getId().equals("0")) {
+                                            currentGame.GAME_ID = 0;
+                                            currentGame.GAME_STATUS = 1;
+                                            currentGame.addPlayerToList(user);
+                                            pushMessage(groupid, user.getName() + " telah memulai permainan "+ currentGame.getGameName(currentGame.GAME_ID)+". Ketik /join untuk bergabung. Game akan dimulai dalam "+ currentGame.PREGAME_TIME/60+" menit." +
+                                                    "\n" +
+                                                    "Minimal pemain: "+ Game.gameList[currentGame.GAME_ID][2]);
+                                            startGame(currentGame);
+                                        } else {
+                                            replyToUser(replyToken, "Kamu belum mengupdate versi linemu ke yang paling baru. Update linemu terlebih dahulu.");
+                                        }
+                                    } else {
+                                        replyToUser(replyToken, "Kamu belum menambahkan bot sebagai teman. Silahkan tambahkan bot sebagai teman dahulu.");
+                                    }
+                                } else {
+                                    replyToUser(replyToken, "Permainan " + currentGame.getGameName(currentGame.GAME_ID) + " sedang berjalan.");
+                                }
+                            } else {
+                                Game game = new Game(groupid, 1, 0);
                                 User user = getUserProfile(userId);
-                                if(user != null){
+                                if (user != null) {
                                     if (!user.getId().equals("0")) {
-                                        currentGroup.GAME_ID = 0;
-                                        currentGroup.GAME_STATUS = 1;
-                                        currentGroup.addPlayerToList(user);
-                                        pushMessage(groupid, user.getName() + " telah memulai permainan "+currentGroup.getGameName(currentGroup.GAME_ID)+". Ketik /join untuk bergabung. Game akan dimulai dalam "+currentGroup.PREGAME_TIME/60+" menit." +
-                                                "\n" +
-                                                "Minimal pemain: "+Group.gameList[currentGroup.GAME_ID][2]);
-                                        startGame(currentGroup);
+                                        game.addPlayerToList(user);
+                                        games.add(game);
+                                        pushMessage(groupid, user.getName() + " telah memulai permainan "+ game.getGameName(game.GAME_ID)+". Ketik /join untuk bergabung. Game akan dimulai dalam 3 menit.");
                                     } else {
                                         replyToUser(replyToken, "Kamu belum mengupdate versi linemu ke yang paling baru. Update linemu terlebih dahulu.");
                                     }
                                 } else {
                                     replyToUser(replyToken, "Kamu belum menambahkan bot sebagai teman. Silahkan tambahkan bot sebagai teman dahulu.");
                                 }
-                            } else {
-                                replyToUser(replyToken, "Permainan " + currentGroup.getGameName(currentGroup.GAME_ID) + " sedang berjalan.");
                             }
-                        } else {
-                            Group group = new Group(groupid, 1, 0);
-                            User user = getUserProfile(userId);
-                            if (user != null) {
-                                if (!user.getId().equals("0")) {
-                                    group.addPlayerToList(user);
-                                    groups.add(group);
-                                    pushMessage(groupid, user.getName() + " telah memulai permainan "+group.getGameName(group.GAME_ID)+". Ketik /join untuk bergabung. Game akan dimulai dalam 3 menit.");
-                                } else {
-                                    replyToUser(replyToken, "Kamu belum mengupdate versi linemu ke yang paling baru. Update linemu terlebih dahulu.");
-                                }
+
+                        }
+                        if (msgText.equalsIgnoreCase("/join")) {
+                            if(userId == null){
+                                replyToUser(replyToken, "Kamu belum mengupdate versi linemu ke yang paling baru. Update linemu terlebih dahulu.");
                             } else {
-                                replyToUser(replyToken, "Kamu belum menambahkan bot sebagai teman. Silahkan tambahkan bot sebagai teman dahulu.");
+                                if (currentGame != null) {
+                                    if (currentGame.GAME_STATUS == 0) {
+                                        replyToUser(replyToken, "Belum ada permainan yang dibuat. Ketik /listgame untuk melihat game yang tersedia.");
+                                    } else {
+                                        if (currentGame.GAME_STATUS != 0) {
+                                            User user = getUserProfile(userId);
+                                            if (user != null) {
+                                                if(checkIfUserJoined(userId, currentGame.playerList)){
+                                                    replyToUser(replyToken, "Kamu sudah tergabung ke dalam game, "+user.getName()+".");
+                                                } else {
+                                                    int gameId = currentGame.GAME_ID;
+                                                    currentGame.addPlayerToList(user);
+                                                    pushMessage(groupid, user.getName() + " bergabung ke permainan " + Game.gameList[gameId][1].toString() +
+                                                            "\n\n" + currentGame.playerList.size() + " pemain telah tergabung.");
+                                                    if(currentGame.playerList.size() == (int) Game.gameList[currentGame.GAME_ID][3]){
+                                                        currentGame.GAME_STATUS = 1;
+                                                    }
+                                                }
+                                            } else {
+                                                replyToUser(replyToken, "Kamu belum menambahkan bot sebagai teman. Silahkan tambahkan bot sebagai teman dahulu.");
+                                            }
+                                        } else {
+                                            replyToUser(replyToken, "Game sudah dimulai.");
+                                        }
+                                    }
+                                }
                             }
                         }
-
-                    }
-                    if (msgText.equalsIgnoreCase("/join")) {
-                        if(userId == null){
-                            replyToUser(replyToken, "Kamu belum mengupdate versi linemu ke yang paling baru. Update linemu terlebih dahulu.");
-                        } else {
-                            if (currentGroup != null) {
-                                if (currentGroup.GAME_STATUS == 0) {
-                                    replyToUser(replyToken, "Belum ada permainan yang dibuat. Ketik /listgame untuk melihat game yang tersedia.");
-                                } else {
-                                    if (currentGroup.GAME_STATUS != 0) {
+                        if (msgText.equalsIgnoreCase("/mulai")) {
+                            if(userId == null){
+                                replyToUser(replyToken, "Kamu belum mengupdate versi linemu ke yang paling baru. Update linemu terlebih dahulu.");
+                            } else {
+                                if (currentGame != null) {
+                                    if (currentGame.GAME_STATUS == 0) {
+                                        replyToUser(replyToken, "Belum ada permainan yang dibuat. Ketik /listgame untuk melihat game yang tersedia.");
+                                    } else {
                                         User user = getUserProfile(userId);
                                         if (user != null) {
-                                            if(checkIfUserJoined(userId, currentGroup.playerList)){
-                                                replyToUser(replyToken, "Kamu sudah tergabung ke dalam game, "+user.getName()+".");
-                                            } else {
-                                                int gameId = currentGroup.GAME_ID;
-                                                currentGroup.addPlayerToList(user);
-                                                pushMessage(groupid, user.getName() + " bergabung ke permainan " + Group.gameList[gameId][1].toString() +
-                                                        "\n\n" + currentGroup.playerList.size() + " pemain telah tergabung.");
-                                                if(currentGroup.playerList.size() == (int) Group.gameList[currentGroup.GAME_ID][3]){
-                                                    currentGroup.GAME_STATUS = 1;
+                                            if(currentGame.GAME_STATUS != 2){
+                                                if (checkGameRequirement(currentGame)) {
+                                                    replyToUser(replyToken, "Memulai game...");
+                                                    currentGame.GAME_STATUS = 2;
+                                                    currentGame.GAME_JUST_BEGIN = 1;
+                                                } else {
+                                                    replyToUser(replyToken, "Belum ada cukup pemain untuk memulai game.");
                                                 }
+                                            } else {
+                                                replyToUser(replyToken, "Game telah dimulai.");
                                             }
                                         } else {
                                             replyToUser(replyToken, "Kamu belum menambahkan bot sebagai teman. Silahkan tambahkan bot sebagai teman dahulu.");
                                         }
-                                    } else {
-                                        replyToUser(replyToken, "Game sudah dimulai.");
                                     }
                                 }
                             }
-
                         }
-                    }
-                    if (msgText.equalsIgnoreCase("/mulai")) {
-                        if(userId == null){
-                            replyToUser(replyToken, "Kamu belum mengupdate versi linemu ke yang paling baru. Update linemu terlebih dahulu.");
-                        } else {
-                            if (currentGroup != null) {
-                                if (currentGroup.GAME_STATUS == 0) {
-                                    replyToUser(replyToken, "Belum ada permainan yang dibuat. Ketik /listgame untuk melihat game yang tersedia.");
-                                } else {
-                                    User user = getUserProfile(userId);
-                                    if (user != null) {
-                                        if(currentGroup.GAME_STATUS != 2){
-                                            if (checkGameRequirement(currentGroup)) {
-                                                replyToUser(replyToken, "Memulai game...");
-                                                currentGroup.GAME_STATUS = 2;
-                                                currentGroup.GAME_JUST_BEGIN = 1;
+                        if(msgText.contains("/kocokdadu")){
+                            if(userId == null){
+                                replyToUser(replyToken, "Kamu belum mengupdate versi linemu ke yang paling baru. Update linemu terlebih dahulu.");
+                            }
+                            else {
+                                if (currentGame != null) {
+                                    if (currentGame.GAME_STATUS == 0) {
+                                        replyToUser(replyToken, "Belum ada permainan yang dibuat. Ketik /listgame untuk melihat game yang tersedia.");
+                                    } else if(currentGame.GAME_STATUS != 2){
+                                        replyToUser(replyToken, "Game belum dimulai, tunggu hingga game dimulai.");
+                                    } else {
+                                        User user = getUserProfile(userId);
+                                        if (user != null) {
+                                            if (checkIfUserJoined(userId, currentGame.playerList)) {
+                                                if(!user.getId().equalsIgnoreCase(currentGame.playerList.get(0).getId())){
+                                                    replyToUser(replyToken, "Sekarang bukan giliranmu, "+user.getName()+".");
+                                                } else {
+                                                    String[] cmd = msgText.split("\\s");
+                                                    if(cmd.length > 1 && cmd[0].equalsIgnoreCase("/kocokdadu")){
+                                                        if (userId.equalsIgnoreCase("U7a3f1c3b1a71e16d4cbe3f0975e95165")) {
+                                                            int dice = Integer.valueOf(cmd[1]);
+                                                            currentGame.playerList.get(0).setDiceNumber(dice);
+                                                            currentGame.playerList.get(0).setDiceRollStatus(1);
+                                                        } else {
+                                                            replyToUser(replyToken, "Hanya Irfan Abyan yang diperbolehkan memakai perintah ini.");
+                                                        }
+                                                    } else {
+                                                        Random random = new Random();
+                                                        int dice = random.nextInt(6) + 1;
+                                                        currentGame.playerList.get(0).setDiceNumber(dice);
+                                                        currentGame.playerList.get(0).setDiceRollStatus(1);
+                                                    }
+                                                }
                                             } else {
-                                                replyToUser(replyToken, "Belum ada cukup pemain untuk memulai game.");
+                                                replyToUser(replyToken, "Kamu tidak tergabung kedalam game, "+user.getName()+".");
                                             }
                                         } else {
-                                            replyToUser(replyToken, "Game telah dimulai.");
+                                            replyToUser(replyToken, "Kamu belum menambahkan bot sebagai teman. Silahkan tambahkan bot sebagai teman dahulu.");
                                         }
-                                    } else {
-                                        replyToUser(replyToken, "Kamu belum menambahkan bot sebagai teman. Silahkan tambahkan bot sebagai teman dahulu.");
                                     }
                                 }
                             }
                         }
-                    }
-                    if(msgText.contains("/kocokdadu")){
-                        if(userId == null){
-                            replyToUser(replyToken, "Kamu belum mengupdate versi linemu ke yang paling baru. Update linemu terlebih dahulu.");
-                        }
-                        else {
-                            if (currentGroup != null) {
-                                if (currentGroup.GAME_STATUS == 0) {
-                                    replyToUser(replyToken, "Belum ada permainan yang dibuat. Ketik /listgame untuk melihat game yang tersedia.");
-                                } else if(currentGroup.GAME_STATUS != 2){
-                                    replyToUser(replyToken, "Game belum dimulai, tunggu hingga game dimulai.");
-                                } else {
-                                    User user = getUserProfile(userId);
-                                    if (user != null) {
-                                        if (checkIfUserJoined(userId, currentGroup.playerList)) {
-                                            if(!user.getId().equalsIgnoreCase(currentGroup.playerList.get(0).getId())){
+                        if(msgText.equalsIgnoreCase("/kocokdadu6")){
+                            if(userId == null){
+                                replyToUser(replyToken, "Kamu belum mengupdate versi linemu ke yang paling baru. Update linemu terlebih dahulu.");
+                            }
+                            if (userId.equalsIgnoreCase("U7a3f1c3b1a71e16d4cbe3f0975e95165")) {
+                                if (currentGame != null) {
+                                    if (currentGame.GAME_STATUS == 0) {
+                                        replyToUser(replyToken, "Belum ada permainan yang dibuat. Ketik /listgame untuk melihat game yang tersedia.");
+                                    } else if(currentGame.GAME_STATUS != 2){
+                                        replyToUser(replyToken, "Game belum dimulai, tunggu hingga game dimulai.");
+                                    } else {
+                                        User user = getUserProfile(userId);
+                                        if (user != null) {
+                                            if(!user.getId().equalsIgnoreCase(currentGame.playerList.get(0).getId())){
                                                 replyToUser(replyToken, "Sekarang bukan giliranmu, "+user.getName()+".");
                                             } else {
-                                                String[] cmd = msgText.split("\\s");
-                                                if(cmd.length > 1 && cmd[0].equalsIgnoreCase("/kocokdadu")){
-                                                    if (userId.equalsIgnoreCase("U7a3f1c3b1a71e16d4cbe3f0975e95165")) {
-                                                        int dice = Integer.valueOf(cmd[1]);
-                                                        currentGroup.playerList.get(0).setDiceNumber(dice);
-                                                        currentGroup.playerList.get(0).setDiceRollStatus(1);
-                                                    } else {
-                                                        replyToUser(replyToken, "Hanya Irfan Abyan yang diperbolehkan memakai perintah ini.");
-                                                    }
-                                                } else {
-                                                    Random random = new Random();
-                                                    int dice = random.nextInt(6) + 1;
-                                                    currentGroup.playerList.get(0).setDiceNumber(dice);
-                                                    currentGroup.playerList.get(0).setDiceRollStatus(1);
-                                                }
+                                                currentGame.playerList.get(0).setDiceNumber(6);
+                                                currentGame.playerList.get(0).setDiceRollStatus(1);
                                             }
                                         } else {
-                                            replyToUser(replyToken, "Kamu tidak tergabung kedalam game, "+user.getName()+".");
+                                            replyToUser(replyToken, "Kamu belum menambahkan bot sebagai teman. Silahkan tambahkan bot sebagai teman dahulu.");
                                         }
-                                    } else {
-                                        replyToUser(replyToken, "Kamu belum menambahkan bot sebagai teman. Silahkan tambahkan bot sebagai teman dahulu.");
                                     }
                                 }
+                            } else {
+                                replyToUser(replyToken, "Hanya Irfan Abyan yang diperbolehkan memakai perintah ini.");
                             }
                         }
-                    }
-                    if(msgText.equalsIgnoreCase("/kocokdadu6")){
-                        if(userId == null){
-                            replyToUser(replyToken, "Kamu belum mengupdate versi linemu ke yang paling baru. Update linemu terlebih dahulu.");
-                        }
-                        if (userId.equalsIgnoreCase("U7a3f1c3b1a71e16d4cbe3f0975e95165")) {
-                            if (currentGroup != null) {
-                                if (currentGroup.GAME_STATUS == 0) {
-                                    replyToUser(replyToken, "Belum ada permainan yang dibuat. Ketik /listgame untuk melihat game yang tersedia.");
-                                } else if(currentGroup.GAME_STATUS != 2){
-                                    replyToUser(replyToken, "Game belum dimulai, tunggu hingga game dimulai.");
-                                } else {
-                                    User user = getUserProfile(userId);
-                                    if (user != null) {
-                                        if(!user.getId().equalsIgnoreCase(currentGroup.playerList.get(0).getId())){
-                                            replyToUser(replyToken, "Sekarang bukan giliranmu, "+user.getName()+".");
+                        if(msgText.equalsIgnoreCase("/map")){
+                            if(userId == null){
+                                replyToUser(replyToken, "Kamu belum mengupdate versi linemu ke yang paling baru. Update linemu terlebih dahulu.");
+                            } else {
+                                if(currentGame != null){
+                                    if(currentGame.GAME_STATUS == 0){
+                                        replyToUser(replyToken, "Belum ada permainan yang dibuat. Ketik /listgame untuk melihat game yang tersedia.");
+                                    } else {
+                                        if(currentGame.GAME_ID != 1 ){
+                                            replyToUser(replyToken, "Game ular tangga sedang tidak dimainkan.");
                                         } else {
-                                            currentGroup.playerList.get(0).setDiceNumber(6);
-                                            currentGroup.playerList.get(0).setDiceRollStatus(1);
+                                            if(currentGame.GAME_STATUS != 2){
+                                                pushImage(groupid, currentGame.MAP_URL);
+                                            } else {
+                                                if(currentGame.ANTI_SPAM_MAP != 0){
+                                                    Cloudinary cloudinary = new Cloudinary(ObjectUtils.asMap(
+                                                            "cloud_name", "biglebomb",
+                                                            "api_key", "914939112251975",
+                                                            "api_secret", "mTgyRz24r8OTMOYDRSPiCC2vQ4o"));
+                                                    try {
+                                                        showMap(currentGame, cloudinary);
+                                                    } catch (IOException e) {
+                                                        e.printStackTrace();
+                                                    }
+                                                }
+                                            }
                                         }
-                                    } else {
-                                        replyToUser(replyToken, "Kamu belum menambahkan bot sebagai teman. Silahkan tambahkan bot sebagai teman dahulu.");
                                     }
                                 }
                             }
-                        } else {
-                            replyToUser(replyToken, "Hanya Irfan Abyan yang diperbolehkan memakai perintah ini.");
                         }
-                    }
-                    if(msgText.equalsIgnoreCase("/map")){
-                        if(userId == null){
-                            replyToUser(replyToken, "Kamu belum mengupdate versi linemu ke yang paling baru. Update linemu terlebih dahulu.");
-                        } else {
-                            if(currentGroup != null){
-                                if(currentGroup.GAME_STATUS == 0){
+                        if(msgText.equalsIgnoreCase("/map2")) {
+                            if (userId == null) {
+                                replyToUser(replyToken, "Kamu belum mengupdate versi linemu ke yang paling baru. Update linemu terlebih dahulu.");
+                            }
+                            if (currentGame != null) {
+                                if (currentGame.GAME_STATUS == 0) {
                                     replyToUser(replyToken, "Belum ada permainan yang dibuat. Ketik /listgame untuk melihat game yang tersedia.");
                                 } else {
-                                    if(currentGroup.GAME_ID != 1 ){
+                                    if (currentGame.GAME_ID != 1) {
                                         replyToUser(replyToken, "Game ular tangga sedang tidak dimainkan.");
                                     } else {
-                                        if(currentGroup.GAME_STATUS != 2){
-                                            pushImage(groupid, currentGroup.MAP_URL);
-                                        } else {
-                                            if(currentGroup.ANTI_SPAM_MAP != 0){
-                                                Cloudinary cloudinary = new Cloudinary(ObjectUtils.asMap(
-                                                        "cloud_name", "biglebomb",
-                                                        "api_key", "914939112251975",
-                                                        "api_secret", "mTgyRz24r8OTMOYDRSPiCC2vQ4o"));
-                                                try {
-                                                    showMap(currentGroup, cloudinary);
-                                                } catch (IOException e) {
-                                                    e.printStackTrace();
-                                                }
-                                            }
-                                        }
+                                        pushImage(groupid, currentGame.MAP_URL);
                                     }
                                 }
                             }
                         }
+                    } else {
+                        replyToUser(replyToken, "Mode game di grup ini belum diaktifkan. Gunakan /modegame <on/off>");
                     }
-                    if(msgText.equalsIgnoreCase("/map2")) {
-                        if (userId == null) {
-                            replyToUser(replyToken, "Kamu belum mengupdate versi linemu ke yang paling baru. Update linemu terlebih dahulu.");
-                        }
-                        if (currentGroup != null) {
-                            if (currentGroup.GAME_STATUS == 0) {
-                                replyToUser(replyToken, "Belum ada permainan yang dibuat. Ketik /listgame untuk melihat game yang tersedia.");
-                            } else {
-                                if (currentGroup.GAME_ID != 1) {
-                                    replyToUser(replyToken, "Game ular tangga sedang tidak dimainkan.");
+                    if(msgText.contains("/modegame")){
+                        String[] cmd = msgText.split("\\s");
+                        if(cmd.length > 1){
+                            if(cmd[0].equalsIgnoreCase("/modegame")){
+                                String command = cmd[1];
+                                if(command.equalsIgnoreCase("on")){
+                                    currentGroup.setStatus_game("enabled");
+                                } else if(command.equalsIgnoreCase("off")){
+                                    currentGroup.setStatus_game("disabled");
                                 } else {
-                                    pushImage(groupid, currentGroup.MAP_URL);
+                                    replyToUser(replyToken, "Penggunaan: /modegame <on/off>");
                                 }
                             }
                         }
@@ -469,21 +504,21 @@ public class LineBotController
                                 if(command.equalsIgnoreCase("grup")){
                                     if(cmd.length == 3){
                                         String nama_divisi = cmd[2];
-                                        Grup grup = new Grup(groupid, "Grup "+nama_divisi, "disabled", "none");
-                                        Call<GrupResponse> call = webAPI.registerGroup(nama_divisi, grup);
-                                        call.enqueue(new Callback<GrupResponse>() {
+                                        Group group = new Group(groupid, "Group "+nama_divisi, "disabled", "none");
+                                        Call<GroupResponse> call = webAPI.registerGroup(nama_divisi, group);
+                                        call.enqueue(new Callback<GroupResponse>() {
                                             @Override
-                                            public void onResponse(Call<GrupResponse> call, Response<GrupResponse> response) {
+                                            public void onResponse(Call<GroupResponse> call, Response<GroupResponse> response) {
                                                 System.out.println(response.toString());
                                                 if(response.body().isSuccess()){
-                                                    replyToUser(replyToken, "Sukses mendaftarkan grup ini sebagai grup divisi "+nama_divisi+".");
+                                                    replyToUser(replyToken, "Sukses mendaftarkan group ini sebagai group divisi "+nama_divisi+".");
                                                 } else {
                                                     replyToUser(replyToken, response.body().getMessage());
                                                 }
                                             }
 
                                             @Override
-                                            public void onFailure(Call<GrupResponse> call, Throwable t) {
+                                            public void onFailure(Call<GroupResponse> call, Throwable t) {
                                                 t.printStackTrace();
                                             }
                                         });
@@ -523,10 +558,10 @@ public class LineBotController
                         }
                     }
                     if(msgText.equalsIgnoreCase("/unregister")){
-                        Call<GrupResponse> call = webAPI.unregisterGrup(groupid);
-                        call.enqueue(new Callback<GrupResponse>() {
+                        Call<GroupResponse> call = webAPI.unregisterGrup(groupid);
+                        call.enqueue(new Callback<GroupResponse>() {
                             @Override
-                            public void onResponse(Call<GrupResponse> call, Response<GrupResponse> response) {
+                            public void onResponse(Call<GroupResponse> call, Response<GroupResponse> response) {
                                 if(response.body().isSuccess()){
                                     replyToUser(replyToken, response.body().getMessage());
                                 } else {
@@ -534,7 +569,7 @@ public class LineBotController
                                 }
                             }
                             @Override
-                            public void onFailure(Call<GrupResponse> call, Throwable t) {
+                            public void onFailure(Call<GroupResponse> call, Throwable t) {
 
                             }
                         });
@@ -544,22 +579,22 @@ public class LineBotController
                         if(cmd.length > 1){
                             if(cmd[0].equalsIgnoreCase("/kirimpesan")){
                                 if(cmd.length > 2){
-                                    Grup grup = isGrupRegistered(groupid);
-                                    if (grup != null) {
+                                    Group group = isGrupRegistered(groupid);
+                                    if (group.getId_grup_line() == null) {
                                         String nama_divisi = cmd[1];
-                                        Call<GrupResponse> call = webAPI.getDivisiGrup(nama_divisi);
-                                        call.enqueue(new Callback<GrupResponse>() {
+                                        Call<GroupResponse> call = webAPI.getDivisiGrup(nama_divisi);
+                                        call.enqueue(new Callback<GroupResponse>() {
                                             @Override
-                                            public void onResponse(Call<GrupResponse> call, Response<GrupResponse> response) {
+                                            public void onResponse(Call<GroupResponse> call, Response<GroupResponse> response) {
                                                 if(response.body().isSuccess()){
                                                     if(cmd.length >= 3){
                                                         String msg = joinString(2, cmd);
                                                         System.out.println(msg);
-                                                        ArrayList<Grup> grupList = response.body().getResult();
-                                                        for (Grup aGrup : grupList) {
-                                                            pushMessage(aGrup.getId_grup_line(), msg+". Dari: "+grup.getDivisi());
+                                                        ArrayList<Group> groupList = response.body().getResult();
+                                                        for (Group aGroup : groupList) {
+                                                            pushMessage(aGroup.getId_grup_line(), msg+". Dari: "+ group.getDivisi());
                                                         }
-                                                        replyToUser(replyToken, "Saya telah mengirim pesan ke seluruh grup divisi "+nama_divisi+".\nDivisi "+nama_divisi+" memiliki jumlah grup: "+grupList.size());
+                                                        replyToUser(replyToken, "Saya telah mengirim pesan ke seluruh group divisi "+nama_divisi+".\nDivisi "+nama_divisi+" memiliki jumlah group: "+ groupList.size());
                                                     } else {
                                                         replyToUser(replyToken, "Penggunaan: /kirimpesan <namaDivisi> <pesan>");
                                                     }
@@ -568,12 +603,12 @@ public class LineBotController
                                                 }
                                             }
                                             @Override
-                                            public void onFailure(Call<GrupResponse> call, Throwable t) {
+                                            public void onFailure(Call<GroupResponse> call, Throwable t) {
                                                 t.printStackTrace();
                                             }
                                         });
                                     } else {
-                                        replyToUser(groupid, "Group ini belum terdaftar kedalam database, silahkan daftarkan grup dulu ke database dengan /register.");
+                                        replyToUser(replyToken, "Game ini belum terdaftar kedalam database, silahkan daftarkan group dulu ke database dengan /register.");
                                     }
                                 } else {
                                     replyToUser(replyToken, "Penggunaan: /kirimpesan <namaDivisi> <pesan>");
@@ -608,22 +643,23 @@ public class LineBotController
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
-    private Grup isGrupRegistered(String groupId){
-        final Grup[] grup = new Grup[1];
-        Call<GrupResponse> call = webAPI.getGrup(groupId);
-        call.enqueue(new Callback<GrupResponse>() {
+    private Group isGrupRegistered(String groupId){
+        final Group[] group = new Group[1];
+        Call<GroupResponse> call = webAPI.getGrup(groupId);
+        call.enqueue(new Callback<GroupResponse>() {
             @Override
-            public void onResponse(Call<GrupResponse> call, Response<GrupResponse> response) {
-                if(response.body().isSuccess())
-                    grup[0] = response.body().getResult().get(0);
+            public void onResponse(Call<GroupResponse> call, Response<GroupResponse> response) {
+                if(response.body().isSuccess()){
+                    group[0] = response.body().getResult().get(0);
+                }
             }
 
             @Override
-            public void onFailure(Call<GrupResponse> call, Throwable t) {
+            public void onFailure(Call<GroupResponse> call, Throwable t) {
                 t.printStackTrace();
             }
         });
-        return grup[0];
+        return group[0];
     }
 
     private String joinString(int start, String[] string){
@@ -634,140 +670,140 @@ public class LineBotController
         return msg;
     }
 
-    public void startGame(Group group){
-        if(group.GAME_ID == 0) {
+    public void startGame(Game game){
+        if(game.GAME_ID == 0) {
             Timer timer = new Timer();
             timer.scheduleAtFixedRate(new TimerTask() {
                 @Override
                 public void run() {
-                    int total_mafia = group.playerList.size() / 3;
-                    int total_sheriff = group.playerList.size() / 3;
-                    int total_doctor = group.playerList.size() / 3;
-                    int total_detective = group.playerList.size() / 3;
-                    if (group.GAME_STATUS == 1) {
+                    int total_mafia = game.playerList.size() / 3;
+                    int total_sheriff = game.playerList.size() / 3;
+                    int total_doctor = game.playerList.size() / 3;
+                    int total_detective = game.playerList.size() / 3;
+                    if (game.GAME_STATUS == 1) {
                         /**
                          * Roles assignment
                          */
-                        if (group.ROLES_ASSIGNED == 0) {
-                            Collections.shuffle(group.playerList);
+                        if (game.ROLES_ASSIGNED == 0) {
+                            Collections.shuffle(game.playerList);
                             int index = 0;
                             for(int i=0; i<User.roles.length; i++){
                                 if(i < User.roles.length ){
-                                    if(total_mafia <= group.playerList.size() / 3){
-                                        group.playerList.get(i).setRole(index);
+                                    if(total_mafia <= game.playerList.size() / 3){
+                                        game.playerList.get(i).setRole(index);
                                         index++;
                                         total_mafia++;
                                     }
-                                    if(total_sheriff <= group.playerList.size() / 3){
-                                        group.playerList.get(i).setRole(index);
+                                    if(total_sheriff <= game.playerList.size() / 3){
+                                        game.playerList.get(i).setRole(index);
                                         index++;
                                         total_sheriff++;
                                     }
-                                    if(total_doctor <= group.playerList.size() / 3){
-                                        group.playerList.get(i).setRole(index);
+                                    if(total_doctor <= game.playerList.size() / 3){
+                                        game.playerList.get(i).setRole(index);
                                         index++;
                                         total_doctor++;
                                     }
-                                    if(total_sheriff <= group.playerList.size() / 3){
-                                        group.playerList.get(i).setRole(index);
+                                    if(total_sheriff <= game.playerList.size() / 3){
+                                        game.playerList.get(i).setRole(index);
                                         index++;
                                         total_detective++;
                                     } else {
                                         if(index != 5){
-                                            group.playerList.get(i).setRole(index);
+                                            game.playerList.get(i).setRole(index);
                                             index = 0;
                                         } else
                                             index++;
                                     }
                                 } else {
                                     index = 0;
-                                    group.playerList.get(i).setRole(index);
+                                    game.playerList.get(i).setRole(index);
                                     index++;
                                 }
                             }
-                            group.ROLES_ASSIGNED = 1;
+                            game.ROLES_ASSIGNED = 1;
                         }
                         else {
-                            group.PREGAME_TIME--;
-                            if (group.PREGAME_TIME == 120)
-                                pushMessage(group.getId(), "Game akan dimulai dalam waktu 2 menit. Ketik /join untuk bergabung.");
-                            else if (group.PREGAME_TIME == 60)
-                                pushMessage(group.getId(), "Game akan dimulai dalam waktu 1 menit. Ketik /join untuk bergabung.");
-                            else if (group.PREGAME_TIME == 30)
-                                pushMessage(group.getId(), "Game akan dimulai dalam waktu 30 detik. Ketik /join untuk bergabung.");
-                            else if (group.PREGAME_TIME == 10)
-                                pushMessage(group.getId(), "Game akan dimulai dalam waktu 10 detik. Ketik /join untuk bergabung.");
-                            else if (group.PREGAME_TIME == 0 && group.playerList.size() >= (Integer) Group.gameList[group.GAME_ID][2]){
-                                pushMessage(group.getId(), "Game mafia dimulai dengan "+group.playerList.size()+" pemain");
-                                group.GAME_STATUS = 2;
-                                group.GAME_JUST_BEGIN = 1;
-                                group.PREGAME_TIME = 120;
+                            game.PREGAME_TIME--;
+                            if (game.PREGAME_TIME == 120)
+                                pushMessage(game.getId(), "Game akan dimulai dalam waktu 2 menit. Ketik /join untuk bergabung.");
+                            else if (game.PREGAME_TIME == 60)
+                                pushMessage(game.getId(), "Game akan dimulai dalam waktu 1 menit. Ketik /join untuk bergabung.");
+                            else if (game.PREGAME_TIME == 30)
+                                pushMessage(game.getId(), "Game akan dimulai dalam waktu 30 detik. Ketik /join untuk bergabung.");
+                            else if (game.PREGAME_TIME == 10)
+                                pushMessage(game.getId(), "Game akan dimulai dalam waktu 10 detik. Ketik /join untuk bergabung.");
+                            else if (game.PREGAME_TIME == 0 && game.playerList.size() >= (Integer) Game.gameList[game.GAME_ID][2]){
+                                pushMessage(game.getId(), "Game mafia dimulai dengan "+ game.playerList.size()+" pemain");
+                                game.GAME_STATUS = 2;
+                                game.GAME_JUST_BEGIN = 1;
+                                game.PREGAME_TIME = 120;
                             }
-                            else if (group.PREGAME_TIME == 0){
-                                pushMessage(group.getId(), "Tidak ada cukup pemain untuk memulai game.");
-                                group.GAME_STATUS = 0;
-                                group.GAME_ID = -1;
-                                group.playerList.clear();
-                                group.PREGAME_TIME = 120;
+                            else if (game.PREGAME_TIME == 0){
+                                pushMessage(game.getId(), "Tidak ada cukup pemain untuk memulai game.");
+                                game.GAME_STATUS = 0;
+                                game.GAME_ID = -1;
+                                game.playerList.clear();
+                                game.PREGAME_TIME = 120;
                             }
                         }
-                    } else if (group.GAME_STATUS == 2){
-                        if (group.GAME_JUST_BEGIN == 1){
-                            pushMessage(group.getId(), "Game akan dimulai...");
-                            pushMessage(group.getId(), "Malam hari tiba. Setiap malam di PPM akan ada warga PPM yang diculik oleh Mafia. Tugas kalian adalah untuk mencari tahu siapa Mafianya dengan cara " +
+                    } else if (game.GAME_STATUS == 2){
+                        if (game.GAME_JUST_BEGIN == 1){
+                            pushMessage(game.getId(), "Game akan dimulai...");
+                            pushMessage(game.getId(), "Malam hari tiba. Setiap malam di PPM akan ada warga PPM yang diculik oleh Mafia. Tugas kalian adalah untuk mencari tahu siapa Mafianya dengan cara " +
                                     "melakukan voting terhadap orang yang kalian anggap paling mencurigakan.");
                         }
-                        if (group.VOTING_STARTED == 0) {
-                            pushMessage(group.getId(), "Voting dimulai...");
-                            for(int i=0; i<group.playerList.size(); i+=4){
+                        if (game.VOTING_STARTED == 0) {
+                            pushMessage(game.getId(), "Voting dimulai...");
+                            for(int i = 0; i< game.playerList.size(); i+=4){
                                 List<Action> listUser = new ArrayList<>();
                                 for(int j=i; j<=i+4; j++){
-                                    listUser.add(new PostbackAction(group.playerList.get(j).getName(), group.playerList.get(j).getId()+"&groupId="+group.getId()));
+                                    listUser.add(new PostbackAction(game.playerList.get(j).getName(), game.playerList.get(j).getId()+"&groupId="+ game.getId()));
                                 }
                                 ButtonsTemplate buttonsTemplate = new ButtonsTemplate("N/A", "Voting pemain", "Pilih pemain yang ingin diciduk", listUser);
-                                buttonMessage(group.playerList.get(i).getId(), buttonsTemplate);
-                                group.GAME_JUST_BEGIN = 0;
+                                buttonMessage(game.playerList.get(i).getId(), buttonsTemplate);
+                                game.GAME_JUST_BEGIN = 0;
                             }
-                            group.VOTING_STARTED = 1;
+                            game.VOTING_STARTED = 1;
                         } else {
-                            group.VOTING_TIME--;
-                            if(group.VOTING_TIME == 10)
-                                pushMessage(group.getId(), "Voting akan berakhir dalam 10 detik.");
-                            else if(group.VOTING_TIME == 0){
-                                group.playerList.sort(new Comparator<User>() {
+                            game.VOTING_TIME--;
+                            if(game.VOTING_TIME == 10)
+                                pushMessage(game.getId(), "Voting akan berakhir dalam 10 detik.");
+                            else if(game.VOTING_TIME == 0){
+                                game.playerList.sort(new Comparator<User>() {
                                     @Override
                                     public int compare(User u1, User u2) {
                                         return u1.voted - u2.voted;
                                     }
                                 });
-                                pushMessage(group.getId(), "Para warga telah melakukan voting, dari hasil voting warga maka "+group.playerList.get(1).getName()+" akan diciduk karena dianggap sebagai Mafia.");
-                                group.playerList.get(0).setStatus("Terciduk");
-                                Collections.rotate(group.playerList, -1);
-                                pushMessage(group.getId(), group.playerList.get(0).getName()+ " adalah " + group.playerList.get(1).getRoleName(group.GAME_ID, group.playerList.get(1).getRole()));
+                                pushMessage(game.getId(), "Para warga telah melakukan voting, dari hasil voting warga maka "+ game.playerList.get(1).getName()+" akan diciduk karena dianggap sebagai Mafia.");
+                                game.playerList.get(0).setStatus("Terciduk");
+                                Collections.rotate(game.playerList, -1);
+                                pushMessage(game.getId(), game.playerList.get(0).getName()+ " adalah " + game.playerList.get(1).getRoleName(game.GAME_ID, game.playerList.get(1).getRole()));
                                 int count = 0;
-                                for(User user: group.playerList){
+                                for(User user: game.playerList){
                                     if(user.getStatus().equalsIgnoreCase("Terciduk"))
                                         count++;
                                 }
                                 if(count == total_mafia){
-                                    pushMessage(group.getId(), "Semua mafia telah terciduk para warga menang!");
-                                    group.GAME_STATUS = 3;
+                                    pushMessage(game.getId(), "Semua mafia telah terciduk para warga menang!");
+                                    game.GAME_STATUS = 3;
                                     timer.cancel();
                                     timer.purge();
                                 }
-                                group.VOTING_TIME = 60;
-                                group.VOTING_STARTED = 0;
+                                game.VOTING_TIME = 60;
+                                game.VOTING_STARTED = 0;
                             }
                         }
-                    } else if (group.GAME_STATUS == 3) {
-                        pushMessage(group.getId(), "Game telah berakhir.");
-                        group.playerList.clear();
-                        group.GAME_STATUS = 0;
+                    } else if (game.GAME_STATUS == 3) {
+                        pushMessage(game.getId(), "Game telah berakhir.");
+                        game.playerList.clear();
+                        game.GAME_STATUS = 0;
                     }
                 }
             }, 0, 1000);
         }
-        else if(group.GAME_ID == 1){
+        else if(game.GAME_ID == 1){
             Timer timer = new Timer();
             int[][] ladderArray = {
                     {3, 21},
@@ -786,51 +822,51 @@ public class LineBotController
                     {95, 51},
                     {97, 79}
             };
-            int PRE_GAME_TIME_DEFAULT = (int)Group.gameList[group.GAME_ID][4];
-            int ROLLING_TIME_DEFAULT = (int)Group.gameList[group.GAME_ID][5];
+            int PRE_GAME_TIME_DEFAULT = (int) Game.gameList[game.GAME_ID][4];
+            int ROLLING_TIME_DEFAULT = (int) Game.gameList[game.GAME_ID][5];
             timer.scheduleAtFixedRate(new TimerTask() {
                 @Override
                 public void run() {
 
-                    if(group.GAME_STATUS == 1){
-                        group.PREGAME_TIME--;
-                        if (group.PREGAME_TIME == PRE_GAME_TIME_DEFAULT) {
+                    if(game.GAME_STATUS == 1){
+                        game.PREGAME_TIME--;
+                        if (game.PREGAME_TIME == PRE_GAME_TIME_DEFAULT) {
                             ButtonsTemplate buttonsTemplate = new ButtonsTemplate(null, "Gabung ke permainan", "Game akan dimulai dalam waktu 2 menit. Ketik /join untuk bergabung.", Arrays.asList(new MessageAction("Gabung", "/join")));
-                            buttonMessage(group.getId(), buttonsTemplate);
+                            buttonMessage(game.getId(), buttonsTemplate);
                         }
-                        else if (group.PREGAME_TIME == 60){
+                        else if (game.PREGAME_TIME == 60){
                             ButtonsTemplate buttonsTemplate = new ButtonsTemplate(null, "Gabung ke permainan", "Game akan dimulai dalam waktu 1 menit. Ketik /join untuk bergabung.", Arrays.asList(new MessageAction("Gabung", "/join")));
-                            buttonMessage(group.getId(), buttonsTemplate);
+                            buttonMessage(game.getId(), buttonsTemplate);
                         }
-                        else if (group.PREGAME_TIME == 30){
+                        else if (game.PREGAME_TIME == 30){
                             ButtonsTemplate buttonsTemplate = new ButtonsTemplate(null, "Gabung ke permainan", "Game akan dimulai dalam waktu 30 detik. Ketik /join untuk bergabung.", Arrays.asList(new MessageAction("Gabung", "/join")));
-                            buttonMessage(group.getId(), buttonsTemplate);
+                            buttonMessage(game.getId(), buttonsTemplate);
                         }
-                        else if (group.PREGAME_TIME == 0 && group.playerList.size() >= (int) Group.gameList[group.GAME_ID][2]){
-                            pushMessage(group.getId(), "Game "+group.getGameName(group.GAME_ID)+" dimulai dengan "+group.playerList.size()+" pemain");
-                            group.GAME_STATUS = 2;
-                            group.GAME_JUST_BEGIN = 1;
-                            group.PREGAME_TIME = PRE_GAME_TIME_DEFAULT;
+                        else if (game.PREGAME_TIME == 0 && game.playerList.size() >= (int) Game.gameList[game.GAME_ID][2]){
+                            pushMessage(game.getId(), "Game "+ game.getGameName(game.GAME_ID)+" dimulai dengan "+ game.playerList.size()+" pemain");
+                            game.GAME_STATUS = 2;
+                            game.GAME_JUST_BEGIN = 1;
+                            game.PREGAME_TIME = PRE_GAME_TIME_DEFAULT;
                         }
-                        else if (group.PREGAME_TIME == 0){
-                            pushMessage(group.getId(), "Tidak ada cukup pemain untuk memulai game.");
-                            group.GAME_STATUS = 0;
-                            group.GAME_ID = -1;
-                            group.playerList.clear();
-                            group.PREGAME_TIME = PRE_GAME_TIME_DEFAULT;
+                        else if (game.PREGAME_TIME == 0){
+                            pushMessage(game.getId(), "Tidak ada cukup pemain untuk memulai game.");
+                            game.GAME_STATUS = 0;
+                            game.GAME_ID = -1;
+                            game.playerList.clear();
+                            game.PREGAME_TIME = PRE_GAME_TIME_DEFAULT;
                         }
-                    } else if(group.GAME_STATUS == 2){
-                        User currentPlayer = group.playerList.get(0);
-                        if(group.GAME_JUST_BEGIN == 1){
-                            pushMessage(group.getId(), "Game akan dimulai...");
-                            pushMessage(group.getId(), "Setiap pemain diharuskan mengocok dadu dengan batas waktu "+Group.gameList[group.GAME_ID][5].toString()+" detik dan maju sesuai hasil dari angka dadu." +
+                    } else if(game.GAME_STATUS == 2){
+                        User currentPlayer = game.playerList.get(0);
+                        if(game.GAME_JUST_BEGIN == 1){
+                            pushMessage(game.getId(), "Game akan dimulai...");
+                            pushMessage(game.getId(), "Setiap pemain diharuskan mengocok dadu dengan batas waktu "+ Game.gameList[game.GAME_ID][5].toString()+" detik dan maju sesuai hasil dari angka dadu." +
                                     "\nApabila waktu habis maka pemain mendapat satu pelanggaran.");
-                            pushMessage(group.getId(), "Jika pemain mendapatkan "+group.MAX_STRIKE+" maka dia akan otomatis dikeluarkan.");
-                            pushMessage(group.getId(), "Apabila pemain mendapatkan angka 6 saat mengocok dadu, maka dia diperbolehkan untuk mengocok dadu kembali.");
-                            Collections.shuffle(group.playerList);
-                            pushMessage(group.getId(), "Pemain pertama adalah "+group.playerList.get(0).getName());
+                            pushMessage(game.getId(), "Jika pemain mendapatkan "+ game.MAX_STRIKE+" maka dia akan otomatis dikeluarkan.");
+                            pushMessage(game.getId(), "Apabila pemain mendapatkan angka 6 saat mengocok dadu, maka dia diperbolehkan untuk mengocok dadu kembali.");
+                            Collections.shuffle(game.playerList);
+                            pushMessage(game.getId(), "Pemain pertama adalah "+ game.playerList.get(0).getName());
                         }
-                        group.GAME_JUST_BEGIN = 0;
+                        game.GAME_JUST_BEGIN = 0;
                         if(currentPlayer.getDiceRollStatus() == 1) {
                             String msg = "";
                             msg += currentPlayer.getName() + " telah mengocok dadu dan hasilnya adalah " + currentPlayer.getDiceNumber()+".\n";
@@ -851,69 +887,69 @@ public class LineBotController
                                     msg += "Hasil kocokan dadu untuk maju melebihi 100 karenanya " + currentPlayer.getName() + " mundur lagi ke " + currentPlayer.getPosition();
                                 } else if (currentPlayer.getPosition() == 100) {
                                     msg += currentPlayer.getName() + " berhasil memenangkan game karena mencapai kotak nomor 100.";
-                                    group.GAME_STATUS = 3;
+                                    game.GAME_STATUS = 3;
                                 } else {
                                     msg += currentPlayer.getName() + " maju " + currentPlayer.getDiceNumber() + " langkah ke kotak nomor " + currentPlayer.getPosition();
                                 }
                             }
-                            pushMessage(group.getId(), msg);
+                            pushMessage(game.getId(), msg);
                             currentPlayer.setDiceRollStatus(0);
                             if(currentPlayer.getDiceNumber() == 6){
-                                group.ROLLING_TIME = ROLLING_TIME_DEFAULT;
+                                game.ROLLING_TIME = ROLLING_TIME_DEFAULT;
                             } else {
-                                group.ROLLING_TIME = ROLLING_TIME_DEFAULT;
-                                Collections.rotate(group.playerList, -1);
+                                game.ROLLING_TIME = ROLLING_TIME_DEFAULT;
+                                Collections.rotate(game.playerList, -1);
                             }
                         } else {
-                            if(group.ROLLING_TIME == ROLLING_TIME_DEFAULT-1){
+                            if(game.ROLLING_TIME == ROLLING_TIME_DEFAULT-1){
                                 if(currentPlayer.getDiceNumber() == 6)
-                                    pushMessage(group.getId(), currentPlayer.getName()+" silahkan mengocok dadu kembali dengan \n/kocokdadu.\nWaktu "+Group.gameList[group.GAME_ID][5]+" detik.");
+                                    pushMessage(game.getId(), currentPlayer.getName()+" silahkan mengocok dadu kembali dengan \n/kocokdadu.\nWaktu "+ Game.gameList[game.GAME_ID][5]+" detik.");
                                 else
-                                    pushMessage(group.getId(), currentPlayer.getName()+" silahkan mengocok dadu dengan \n/kocokdadu.\nWaktu "+Group.gameList[group.GAME_ID][5]+" detik.");
+                                    pushMessage(game.getId(), currentPlayer.getName()+" silahkan mengocok dadu dengan \n/kocokdadu.\nWaktu "+ Game.gameList[game.GAME_ID][5]+" detik.");
                             }
-                            else if(group.ROLLING_TIME == 0) {
+                            else if(game.ROLLING_TIME == 0) {
                                 if(currentPlayer.getDiceRollStatus() == 0){
-                                    pushMessage(group.getId(), currentPlayer.getName()+" gagal mengocok dadu dalam batas waktu yang ditentukan.");
+                                    pushMessage(game.getId(), currentPlayer.getName()+" gagal mengocok dadu dalam batas waktu yang ditentukan.");
                                     currentPlayer.strike++;
                                 }
-                                if(currentPlayer.strike == group.MAX_STRIKE){
-                                    removePlayerFromGame(currentPlayer.getId(), group.playerList);
-                                    pushMessage(group.getId(), currentPlayer.getName()+" dikeluarkan dari game karena sudah tidak mengocok dadu sebanyak "+group.MAX_STRIKE+" kali.");
-                                    if(group.playerList.size() < 2){
-                                        group.GAME_STATUS = 3;
-                                        pushMessage(group.getId(), "Tidak ada cukup pemain untuk melanjutkan game.");
+                                if(currentPlayer.strike == game.MAX_STRIKE){
+                                    removePlayerFromGame(currentPlayer.getId(), game.playerList);
+                                    pushMessage(game.getId(), currentPlayer.getName()+" dikeluarkan dari game karena sudah tidak mengocok dadu sebanyak "+ game.MAX_STRIKE+" kali.");
+                                    if(game.playerList.size() < 2){
+                                        game.GAME_STATUS = 3;
+                                        pushMessage(game.getId(), "Tidak ada cukup pemain untuk melanjutkan game.");
                                     }
                                 }
-                                group.ROLLING_TIME = ROLLING_TIME_DEFAULT;
-                                Collections.rotate(group.playerList, -1);
+                                game.ROLLING_TIME = ROLLING_TIME_DEFAULT;
+                                Collections.rotate(game.playerList, -1);
                             }
-                            group.ROLLING_TIME--;
+                            game.ROLLING_TIME--;
                         }
-                        group.ANTI_SPAM_MAP--;
-                    } else if(group.GAME_STATUS == 3){
+                        game.ANTI_SPAM_MAP--;
+                    } else if(game.GAME_STATUS == 3){
                         Cloudinary cloudinary = new Cloudinary(ObjectUtils.asMap(
                             "cloud_name", "biglebomb",
                             "api_key", "914939112251975",
                             "api_secret", "mTgyRz24r8OTMOYDRSPiCC2vQ4o"));
                         try {
-                            showMap(group, cloudinary);
+                            showMap(game, cloudinary);
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
-                        pushMessage(group.getId(), "Game telah berakhir.");
-                        group.playerList.clear();
-                        group.GAME_STATUS = 0;
+                        pushMessage(game.getId(), "Game telah berakhir.");
+                        game.playerList.clear();
+                        game.GAME_STATUS = 0;
                     }
                 }
             },0, 1000);
         }
     }
 
-    private void showMap(Group group, Cloudinary cloudinary) throws IOException {
+    private void showMap(Game game, Cloudinary cloudinary) throws IOException {
         Gson gson = new Gson();
-        BufferedImage map = ImageIO.read(new URL(group.MAP_URL));
+        BufferedImage map = ImageIO.read(new URL(game.MAP_URL));
 
-        BufferedImage[] playerAvatar = new BufferedImage[group.playerList.size()];
+        BufferedImage[] playerAvatar = new BufferedImage[game.playerList.size()];
         int w = map.getWidth();
         int h = map.getHeight();
         System.out.println("WIDTH: "+w+" HEIGHT: "+h);
@@ -924,8 +960,8 @@ public class LineBotController
 
         Graphics graphics = combined.getGraphics();
         graphics.drawImage(map, 0, 0, null);
-        for(int i=0; i<group.playerList.size(); i++){
-            currentPlayer = group.playerList.get(i);
+        for(int i = 0; i< game.playerList.size(); i++){
+            currentPlayer = game.playerList.get(i);
             playerAvatar[i] = resize(new URL(currentPlayer.getPictureUrl()), new Dimension((map.getWidth()/10)/ 2, (map.getHeight()/10) / 2));
             int[] imageCoordinate = getImageCoordinateFromPosition(currentPlayer.getPosition(), map, 2, 5);
             currentPosX = imageCoordinate[0];
@@ -952,17 +988,17 @@ public class LineBotController
         File finalFile = new File("final.jpg");
         ImageIO.write(combined, "jpg", finalFile);
         Map uploadResult = cloudinary.uploader().upload(finalFile, ObjectUtils.asMap(
-                "public_id", "ulartangga_"+group.getId()
+                "public_id", "ulartangga_"+ game.getId()
         ));
         Gson gson2 = new GsonBuilder().create();
         String json = gson2.toJson(uploadResult);
         ImageResponse imageResponse = gson.fromJson(json, ImageResponse.class);
-        pushImage(group.getId(), imageResponse.secure_url);
-        group.ANTI_SPAM_MAP=30;
+        pushImage(game.getId(), imageResponse.secure_url);
+        game.ANTI_SPAM_MAP=30;
     }
 
-    private Boolean checkGameRequirement(Group group){
-        return group.playerList.size() >= (int) Group.gameList[group.GAME_ID][2];
+    private Boolean checkGameRequirement(Game game){
+        return game.playerList.size() >= (int) Game.gameList[game.GAME_ID][2];
     }
 
     private int getSnakeData(int position, int[][] snakeArray){
@@ -1074,10 +1110,10 @@ public class LineBotController
         }
     }
 
-    private Group searchGroupById(String groupId){
-        for (Group group : groups) {
-            if (group.getId().equals(groupId)) {
-                return group;
+    private Game searchGameByGroupId(String groupId){
+        for (Game game : games) {
+            if (game.getId().equals(groupId)) {
+                return game;
             }
         }
         return null;

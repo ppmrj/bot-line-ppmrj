@@ -1,6 +1,6 @@
 package com.ppmrj.linebot.Web_API.Model;
 
-public class Grup {
+public class Group {
     private int id;
     private String id_grup_line;
     private String nama;
@@ -8,15 +8,16 @@ public class Grup {
     private String tipe_grup;
     private int id_divisi;
     private String divisi;
+    private String message;
 
-    public Grup(String id_grup_line, String nama, String status_game, String tipe_grup) {
+    public Group(String id_grup_line, String nama, String status_game, String tipe_grup) {
         this.id_grup_line = id_grup_line;
         this.nama = nama;
         this.status_game = status_game;
         this.tipe_grup = tipe_grup;
     }
 
-    public Grup(int id, String id_grup_line, String nama, String status_game, String tipe_grup, int id_divisi) {
+    public Group(int id, String id_grup_line, String nama, String status_game, String tipe_grup, int id_divisi) {
         this.id = id;
         this.id_grup_line = id_grup_line;
         this.nama = nama;

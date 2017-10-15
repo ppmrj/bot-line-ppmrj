@@ -2,7 +2,7 @@ package com.ppmrj.linebot;
 
 import java.util.*;
 
-public class Group {
+public class Game {
     private String id;
     private String label;
     private int gameStatus;
@@ -47,13 +47,13 @@ public class Group {
             {5, "⚅"}
     };
 
-    public Group(String id, int GAME_STATUS, int GAME_ID) {
+    public Game(String id, int GAME_STATUS, int GAME_ID) {
         this.id = id;
         this.GAME_STATUS = GAME_STATUS;
         this.GAME_ID = GAME_ID;
     }
 
-    public Group(String id, String label) {
+    public Game(String id, String label) {
         this.id = id;
         this.label = label;
     }
