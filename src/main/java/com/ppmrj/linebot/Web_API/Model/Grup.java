@@ -7,6 +7,7 @@ public class Grup {
     private String status_game;
     private String tipe_grup;
     private int id_divisi;
+    private String divisi;
 
     public Grup(String id_grup_line, String nama, String status_game, String tipe_grup) {
         this.id_grup_line = id_grup_line;
@@ -70,5 +71,13 @@ public class Grup {
 
     public void setId_divisi(int id_divisi) {
         this.id_divisi = id_divisi;
+    }
+
+    public String getDivisi() {
+        return divisi;
+    }
+
+    public void setDivisi(String divisi) {
+        this.divisi = divisi;
     }
 }

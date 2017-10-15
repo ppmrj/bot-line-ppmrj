@@ -48,6 +48,7 @@ import java.util.List;
 public class LineBotController
 {
     ArrayList<Group> groups = new ArrayList<>();
+    WebAPI webAPI = WebAPIClient.getClient().create(WebAPI.class);
 
     @Autowired
     @Qualifier("com.linecorp.channel_secret")
@@ -460,9 +461,6 @@ public class LineBotController
                             }
                         }
                     }
-
-                    WebAPI webAPI = WebAPIClient.getClient().create(WebAPI.class);
-
                     if(msgText.contains("/register")){
                         String[] cmd = msgText.split("\\s");
                         if(cmd.length > 1){
@@ -516,6 +514,8 @@ public class LineBotController
                                     } else {
                                         replyToUser(replyToken, "Penggunaan: /register <grup/divisi> <nama>");
                                     }
+                                } else {
+                                    replyToUser(replyToken, "Penggunaan: /register <grup/divisi> <nama>");
                                 }
                             }
                         } else {
@@ -544,32 +544,37 @@ public class LineBotController
                         if(cmd.length > 1){
                             if(cmd[0].equalsIgnoreCase("/kirimpesan")){
                                 if(cmd.length > 2){
-                                    String nama_divisi = cmd[1];
-                                    Call<GrupResponse> call = webAPI.getDivisiGrup(nama_divisi);
-                                    call.enqueue(new Callback<GrupResponse>() {
-                                        @Override
-                                        public void onResponse(Call<GrupResponse> call, Response<GrupResponse> response) {
-                                            if(response.body().isSuccess()){
-                                                if(cmd.length >= 3){
-                                                    String msg = joinString(2, cmd);
-                                                    System.out.println(msg);
-                                                    ArrayList<Grup> grup = response.body().getResult();
-                                                    for (Grup aGrup : grup) {
-                                                        pushMessage(aGrup.getId_grup_line(), msg);
+                                    Grup grup = isGrupRegistered(groupid);
+                                    if (grup != null) {
+                                        String nama_divisi = cmd[1];
+                                        Call<GrupResponse> call = webAPI.getDivisiGrup(nama_divisi);
+                                        call.enqueue(new Callback<GrupResponse>() {
+                                            @Override
+                                            public void onResponse(Call<GrupResponse> call, Response<GrupResponse> response) {
+                                                if(response.body().isSuccess()){
+                                                    if(cmd.length >= 3){
+                                                        String msg = joinString(2, cmd);
+                                                        System.out.println(msg);
+                                                        ArrayList<Grup> grupList = response.body().getResult();
+                                                        for (Grup aGrup : grupList) {
+                                                            pushMessage(aGrup.getId_grup_line(), msg+". Dari: "+grup.getDivisi());
+                                                        }
+                                                        replyToUser(replyToken, "Saya telah mengirim pesan ke seluruh grup divisi "+nama_divisi+".\nDivisi "+nama_divisi+" memiliki jumlah grup: "+grup.size());
+                                                    } else {
+                                                        replyToUser(replyToken, "Penggunaan: /kirimpesan <namaDivisi> <pesan>");
                                                     }
                                                 } else {
-                                                    replyToUser(replyToken, "Penggunaan: /kirimpesan <namaDivisi> <pesan>");
+                                                    replyToUser(replyToken, response.body().getMessage());
                                                 }
-                                            } else {
-                                                replyToUser(replyToken, response.body().getMessage());
                                             }
-                                        }
-
-                                        @Override
-                                        public void onFailure(Call<GrupResponse> call, Throwable t) {
-
-                                        }
-                                    });
+                                            @Override
+                                            public void onFailure(Call<GrupResponse> call, Throwable t) {
+                                                t.printStackTrace();
+                                            }
+                                        });
+                                    } else {
+                                        replyToUser(groupid, "Group ini belum terdaftar kedalam database, silahkan daftarkan grup dulu ke database dengan /register.");
+                                    }
                                 } else {
                                     replyToUser(replyToken, "Penggunaan: /kirimpesan <namaDivisi> <pesan>");
                                 }
@@ -579,8 +584,6 @@ public class LineBotController
                         }
                     }
                 }
-
-                /************* END OF MAFIA MINIGAME ************************/
 
                 if (!msgText.contains("bot leave")) {
 //                    try {
@@ -603,6 +606,24 @@ public class LineBotController
         }
 
         return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    private Grup isGrupRegistered(String groupId){
+        final Grup[] grup = new Grup[1];
+        Call<GrupResponse> call = webAPI.getGrup(groupId);
+        call.enqueue(new Callback<GrupResponse>() {
+            @Override
+            public void onResponse(Call<GrupResponse> call, Response<GrupResponse> response) {
+                if(response.body().isSuccess())
+                    grup[0] = response.body().getResult().get(0);
+            }
+
+            @Override
+            public void onFailure(Call<GrupResponse> call, Throwable t) {
+                t.printStackTrace();
+            }
+        });
+        return grup[0];
     }
 
     private String joinString(int start, String[] string){
