@@ -20,6 +20,11 @@ import com.linecorp.bot.model.message.TextMessage;
 import com.linecorp.bot.model.message.template.ButtonsTemplate;
 import com.linecorp.bot.model.profile.UserProfileResponse;
 import com.linecorp.bot.model.response.BotApiResponse;
+import com.ppmrj.linebot.Web_API.Model.DivisiResponse;
+import com.ppmrj.linebot.Web_API.Model.Divisi;
+import com.ppmrj.linebot.Web_API.Model.Grup;
+import com.ppmrj.linebot.Web_API.Model.GrupResponse;
+import com.ppmrj.linebot.Web_API.WebAPIBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
@@ -32,7 +37,6 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.*;
 import java.util.List;
@@ -90,7 +94,7 @@ public class LineBotController
 
         if (eventType.equals("join")){
             if (payload.events[0].source.type.equals("group")){
-                replyToUser(payload.events[0].replyToken, "Hello Group");
+                replyToUser(payload.events[0].replyToken, "Hello Grup");
             }
             if (payload.events[0].source.type.equals("room")){
                 replyToUser(payload.events[0].replyToken, "Hello Room");
@@ -126,10 +130,10 @@ public class LineBotController
                             Group group = searchGroupById(groupid);
                             if(group==null){
                                 groups.add(new Group(groupid, cmd[1]));
-                                replyToUser(replyToken, "Group ini telah berhasil ditambahkan ke list dengan nama "+cmd[1]);
+                                replyToUser(replyToken, "Grup ini telah berhasil ditambahkan ke list dengan nama "+cmd[1]);
                             }
                             else
-                                replyToUser(replyToken, "Group "+cmd[1]+ " sudah ada didalam list.");
+                                replyToUser(replyToken, "Grup "+cmd[1]+ " sudah ada didalam list.");
                         } else {
                             replyToUser(replyToken, "Perintah salah. /addgrouptolist <nama>");
                         }
@@ -172,7 +176,7 @@ public class LineBotController
                                 replyToUser(replyToken, "Tidak ada game yang sedang dimainkan.");
                             }
                         } else {
-                            System.out.println("Group unregistered.");
+                            System.out.println("Grup unregistered.");
                         }
                     }
                     if (msgText.equalsIgnoreCase("/listpemain")) {
@@ -210,7 +214,7 @@ public class LineBotController
                                 replyToUser(replyToken, "Tidak ada game yang sedang dimainkan.");
                             }
                         } else {
-                            System.out.println("Group unregistered.");
+                            System.out.println("Grup unregistered.");
                         }
                     }
                     if(msgText.equalsIgnoreCase("/main ulartangga")){
@@ -454,6 +458,91 @@ public class LineBotController
                             }
                         }
                     }
+                    if(msgText.contains("/register")){
+                        String[] cmd = msgText.split("\\s");
+                        if(cmd.length > 1){
+                            if(cmd[0].equalsIgnoreCase("/register")){
+                                String command = cmd[1];
+                                if(command.equalsIgnoreCase("grup")){
+                                    if(cmd.length == 3){
+                                        String nama_divisi = cmd[2];
+                                        try {
+                                            Response<GrupResponse> response = WebAPIBuilder
+                                                    .create()
+                                                    .build()
+                                                    .registerGroup(nama_divisi, groupid, "Grup "+nama_divisi, "disabled", "none")
+                                                    .execute();
+                                            if(response.body().isSuccess()){
+                                                replyToUser(replyToken, "Sukses mendaftarkan grup ini sebagai grup divisi "+nama_divisi+".");
+                                            } else {
+                                                replyToUser(replyToken, response.body().getMessage());
+                                            }
+                                        } catch (IOException e) {
+                                            e.printStackTrace();
+                                        }
+                                    } else {
+                                        replyToUser(replyToken, "Penggunaan: /register <grup/divisi> <nama>");
+                                    }
+                                } else if(command.equalsIgnoreCase("divisi")){
+                                    if(cmd.length == 3){
+                                        String nama_divisi = cmd[2];
+                                        try {
+                                            Response<DivisiResponse> response = WebAPIBuilder
+                                                    .create()
+                                                    .build()
+                                                    .addDivisi(nama_divisi)
+                                                    .execute();
+                                            if(response.body().isSuccess()){
+                                                replyToUser(replyToken, "Sukses mendaftarkan divisi "+nama_divisi+" kedalam database.");
+                                            } else {
+                                                replyToUser(replyToken, response.body().getMessage());
+                                            }
+                                        } catch (IOException e) {
+                                            e.printStackTrace();
+                                        }
+                                    } else {
+                                        replyToUser(replyToken, "Penggunaan: /register <grup/divisi> <nama>");
+                                    }
+                                }
+                            }
+                        } else {
+                            replyToUser(replyToken, "Penggunaan: /register <grup/divisi> <nama>");
+                        }
+                    }
+                    if(msgText.contains("/kirimpesan")){
+                        String[] cmd = msgText.split("\\s");
+                        if(cmd.length > 1){
+                            if(cmd[0].equalsIgnoreCase("/kirimpesan")){
+                                if(cmd.length > 2){
+                                    String nama_divisi = cmd[1];
+                                    try {
+                                        Response<GrupResponse> response = WebAPIBuilder
+                                                .create()
+                                                .build()
+                                                .getDivisiGrup(nama_divisi)
+                                                .execute();
+                                        if(response.body().isSuccess()){
+                                            if(cmd.length > 3){
+                                                String msg = joinString(2, cmd);
+                                                ArrayList<Grup> grup = response.body().getResult();
+                                                for (Grup aGrup : grup) {
+                                                    pushMessage(aGrup.getId_grup_line(), msg);
+                                                }
+                                            } else {
+                                                replyToUser(replyToken, "Penggunaan: /kirimpesan <namaDivisi> <pesan>");
+                                            }
+                                        }
+                                    } catch (IOException e) {
+                                        e.printStackTrace();
+                                    }
+                                } else {
+                                    replyToUser(replyToken, "Penggunaan: /kirimpesan <namaDivisi> <pesan>");
+                                }
+                            }
+                        } else {
+                            replyToUser(replyToken, "Penggunaan: /kirimpesan <namaDivisi> <pesan>");
+                        }
+                    }
                 }
 
                 /************* END OF MAFIA MINIGAME ************************/
@@ -481,6 +570,13 @@ public class LineBotController
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
+    private String joinString(int start, String[] string){
+        String msg="";
+        for(int i=start; i<string.length; i++){
+            msg+=string[i]+" ";
+        }
+        return msg;
+    }
 
     public void startGame(Group group){
         if(group.GAME_ID == 0) {
@@ -757,7 +853,7 @@ public class LineBotController
         }
     }
 
-    public void showMap(Group group, Cloudinary cloudinary) throws IOException {
+    private void showMap(Group group, Cloudinary cloudinary) throws IOException {
         Gson gson = new Gson();
         BufferedImage map = ImageIO.read(new URL(group.MAP_URL));
 
@@ -797,8 +893,8 @@ public class LineBotController
             lastPosX = currentPosX;
             lastPosY = currentPosY;
         }
-        File finalFile = new File("final.png");
-        ImageIO.write(combined, "PNG", finalFile);
+        File finalFile = new File("final.jpg");
+        ImageIO.write(combined, "jpg", finalFile);
         Map uploadResult = cloudinary.uploader().upload(finalFile, ObjectUtils.asMap(
                 "public_id", "ulartangga_"+group.getId()
         ));
@@ -809,45 +905,35 @@ public class LineBotController
         group.ANTI_SPAM_MAP=30;
     }
 
-    public Boolean checkGameRequirement(Group group){
+    private Boolean checkGameRequirement(Group group){
         return group.playerList.size() >= (int) Group.gameList[group.GAME_ID][2];
     }
 
-    public int getSnakeData(int position, int[][] snakeArray){
-        for(int i=0; i<snakeArray.length; i++){
-            if(position == snakeArray[i][0]){
-                return snakeArray[i][1];
-            }
-        }
+    private int getSnakeData(int position, int[][] snakeArray){
+        for (int[] aSnakeArray : snakeArray)
+            if (position == aSnakeArray[0])
+                return aSnakeArray[1];
         return 0;
     }
 
-    public Boolean isInSnakeColumn(int position, int[][] snakeArray){
-        for(int i=0; i<snakeArray.length; i++){
-            if(position == snakeArray[i][0])
+    private Boolean isInSnakeColumn(int position, int[][] snakeArray){
+        for (int[] aSnakeArray : snakeArray)
+            if (position == aSnakeArray[0])
                 return true;
-            else
-                return false;
-        }
         return false;
     }
 
-    public int getLadderData(int position, int[][] ladderArray){
-        for(int i=0; i<ladderArray.length; i++){
-            if(position == ladderArray[i][0]){
-                return ladderArray[i][1];
-            }
-        }
+    private int getLadderData(int position, int[][] ladderArray){
+        for (int[] aLadderArray : ladderArray)
+            if (position == aLadderArray[0])
+                return aLadderArray[1];
         return 0;
     }
 
-    public Boolean isInLadderColumn(int position, int[][] ladderArray){
-        for(int i=0; i<ladderArray.length; i++){
-            if(position == ladderArray[i][0])
+    private Boolean isInLadderColumn(int position, int[][] ladderArray){
+        for (int[] aLadderArray : ladderArray)
+            if (position == aLadderArray[0])
                 return true;
-            else
-                return false;
-        }
         return false;
     }
 
@@ -856,7 +942,7 @@ public class LineBotController
      * @source https://stackoverflow.com/questions/18550284/java-resize-image-from-an-url
      */
 
-    public BufferedImage resize(final URL url, final Dimension size) throws IOException{
+    private BufferedImage resize(final URL url, final Dimension size) throws IOException{
         final BufferedImage image = ImageIO.read(url);
         final BufferedImage resized = new BufferedImage(size.width, size.height, BufferedImage.TYPE_INT_ARGB);
         final Graphics2D g = resized.createGraphics();
@@ -899,28 +985,28 @@ public class LineBotController
         else
             return "desc";
     }
+
     private int getPositionRow(int position){
-        if(position > 0 && position <= 10){
+        if(position > 0 && position <= 10)
             return 9;
-        } else if(position > 10 && position <= 20){
+        else if(position > 10 && position <= 20)
             return 8;
-        } else if(position > 20 && position <= 30){
+        else if(position > 20 && position <= 30)
             return 7;
-        } else if(position > 30 && position <= 40){
+        else if(position > 30 && position <= 40)
             return 6;
-        } else if(position > 40 && position <= 50){
+        else if(position > 40 && position <= 50)
             return 5;
-        } else if(position > 50 && position <= 60){
+        else if(position > 50 && position <= 60)
             return 4;
-        } else if(position > 60 && position <= 70){
+        else if(position > 60 && position <= 70)
             return 3;
-        } else if(position > 70 && position <= 80){
+        else if(position > 70 && position <= 80)
             return 2;
-        } else if(position > 80 && position <= 90){
+        else if(position > 80 && position <= 90)
             return 1;
-        } else if(position > 90 && position <= 100){
+        else if(position > 90 && position <= 100)
             return 0;
-        }
         return 0;
     }
 
