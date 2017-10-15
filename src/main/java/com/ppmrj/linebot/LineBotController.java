@@ -486,7 +486,7 @@ public class LineBotController
 
                                             @Override
                                             public void onFailure(Call<GrupResponse> call, Throwable t) {
-
+                                                t.printStackTrace();
                                             }
                                         });
 
@@ -510,7 +510,7 @@ public class LineBotController
 
                                             @Override
                                             public void onFailure(Call<DivisiResponse> call, Throwable t) {
-
+                                                t.printStackTrace();
                                             }
                                         });
                                     } else {
@@ -521,6 +521,23 @@ public class LineBotController
                         } else {
                             replyToUser(replyToken, "Penggunaan: /register <grup/divisi> <nama>");
                         }
+                    }
+                    if(msgText.equalsIgnoreCase("/unregister")){
+                        Call<GrupResponse> call = webAPI.unregisterGrup(groupid);
+                        call.enqueue(new Callback<GrupResponse>() {
+                            @Override
+                            public void onResponse(Call<GrupResponse> call, Response<GrupResponse> response) {
+                                if(response.body().isSuccess()){
+                                    replyToUser(replyToken, response.body().getMessage());
+                                } else {
+                                    replyToUser(replyToken, response.body().getMessage());
+                                }
+                            }
+                            @Override
+                            public void onFailure(Call<GrupResponse> call, Throwable t) {
+
+                            }
+                        });
                     }
                     if(msgText.contains("/kirimpesan")){
                         String[] cmd = msgText.split("\\s");
