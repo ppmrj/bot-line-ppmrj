@@ -21,15 +21,17 @@ import com.linecorp.bot.model.message.template.ButtonsTemplate;
 import com.linecorp.bot.model.profile.UserProfileResponse;
 import com.linecorp.bot.model.response.BotApiResponse;
 import com.ppmrj.linebot.Web_API.Model.DivisiResponse;
-import com.ppmrj.linebot.Web_API.Model.Divisi;
 import com.ppmrj.linebot.Web_API.Model.Grup;
 import com.ppmrj.linebot.Web_API.Model.GrupResponse;
-import com.ppmrj.linebot.Web_API.WebAPIBuilder;
+import com.ppmrj.linebot.Web_API.WebAPI;
+import com.ppmrj.linebot.Web_API.WebAPIClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import retrofit2.Call;
+import retrofit2.Callback;
 import retrofit2.Response;
 
 import javax.imageio.ImageIO;
@@ -458,6 +460,9 @@ public class LineBotController
                             }
                         }
                     }
+
+                    WebAPI webAPI = WebAPIClient.getClient().create(WebAPI.class);
+
                     if(msgText.contains("/register")){
                         String[] cmd = msgText.split("\\s");
                         if(cmd.length > 1){
@@ -467,42 +472,57 @@ public class LineBotController
                                     if(cmd.length == 3){
                                         String nama_divisi = cmd[2];
                                         Grup grup = new Grup(groupid, "Grup "+nama_divisi, "disabled", "none");
-                                        try {
-                                            Response<GrupResponse> response = WebAPIBuilder
-                                                    .create()
-                                                    .build()
-                                                    .registerGroup(grup)
-                                                    .execute();
-                                            System.out.println(response.toString());
-                                            if(response.body().isSuccess()){
-                                                replyToUser(replyToken, "Sukses mendaftarkan grup ini sebagai grup divisi "+nama_divisi+".");
-                                            } else {
-                                                replyToUser(replyToken, response.body().getMessage());
+                                        //                                            Response<GrupResponse> response = WebAPIClient
+//                                                    .create()
+//                                                    .build()
+//                                                    .registerGroup(grup)
+//                                                    .execute();
+                                        Call<GrupResponse> call = webAPI.registerGroup(grup);
+                                        call.enqueue(new Callback<GrupResponse>() {
+                                            @Override
+                                            public void onResponse(Call<GrupResponse> call, Response<GrupResponse> response) {
+                                                System.out.println(response.toString());
+                                                if(response.body().isSuccess()){
+                                                    replyToUser(replyToken, "Sukses mendaftarkan grup ini sebagai grup divisi "+nama_divisi+".");
+                                                } else {
+                                                    replyToUser(replyToken, response.body().getMessage());
+                                                }
                                             }
-                                        } catch (IOException e) {
-                                            e.printStackTrace();
-                                        }
+
+                                            @Override
+                                            public void onFailure(Call<GrupResponse> call, Throwable t) {
+
+                                            }
+                                        });
+
                                     } else {
                                         replyToUser(replyToken, "Penggunaan: /register <grup/divisi> <nama>");
                                     }
                                 } else if(command.equalsIgnoreCase("divisi")){
                                     if(cmd.length == 3){
                                         String nama_divisi = cmd[2];
-                                        try {
-                                            Response<DivisiResponse> response = WebAPIBuilder
-                                                    .create()
-                                                    .build()
-                                                    .addDivisi(nama_divisi)
-                                                    .execute();
-                                            System.out.println(response.toString());
-                                            if(response.body().isSuccess()){
-                                                replyToUser(replyToken, "Sukses mendaftarkan divisi "+nama_divisi+" kedalam database.");
-                                            } else {
-                                                replyToUser(replyToken, response.body().getMessage());
+                                        //                                            Response<DivisiResponse> response = WebAPIClient
+//                                                    .create()
+//                                                    .build()
+//                                                    .addDivisi(nama_divisi)
+//                                                    .execute();
+                                        Call<DivisiResponse> call = webAPI.addDivisi(nama_divisi);
+                                        call.enqueue(new Callback<DivisiResponse>() {
+                                            @Override
+                                            public void onResponse(Call<DivisiResponse> call, Response<DivisiResponse> response) {
+                                                System.out.println(response.toString());
+                                                if(response.body().isSuccess()){
+                                                    replyToUser(replyToken, "Sukses mendaftarkan divisi "+nama_divisi+" kedalam database.");
+                                                } else {
+                                                    replyToUser(replyToken, response.body().getMessage());
+                                                }
                                             }
-                                        } catch (IOException e) {
-                                            e.printStackTrace();
-                                        }
+
+                                            @Override
+                                            public void onFailure(Call<DivisiResponse> call, Throwable t) {
+
+                                            }
+                                        });
                                     } else {
                                         replyToUser(replyToken, "Penggunaan: /register <grup/divisi> <nama>");
                                     }
@@ -518,29 +538,36 @@ public class LineBotController
                             if(cmd[0].equalsIgnoreCase("/kirimpesan")){
                                 if(cmd.length > 2){
                                     String nama_divisi = cmd[1];
-                                    try {
-                                        Response<GrupResponse> response = WebAPIBuilder
-                                                .create()
-                                                .build()
-                                                .getDivisiGrup(nama_divisi)
-                                                .execute();
-                                        if(response.body().isSuccess()){
-                                            if(cmd.length > 3){
-                                                String msg = joinString(2, cmd);
-                                                System.out.println(msg);
-                                                ArrayList<Grup> grup = response.body().getResult();
-                                                for (Grup aGrup : grup) {
-                                                    pushMessage(aGrup.getId_grup_line(), msg);
+                                    //                                        Response<GrupResponse> response = WebAPIClient
+//                                                .create()
+//                                                .build()
+//                                                .getDivisiGrup(nama_divisi)
+//                                                .execute();
+                                    Call<GrupResponse> call = webAPI.getDivisiGrup(nama_divisi);
+                                    call.enqueue(new Callback<GrupResponse>() {
+                                        @Override
+                                        public void onResponse(Call<GrupResponse> call, Response<GrupResponse> response) {
+                                            if(response.body().isSuccess()){
+                                                if(cmd.length > 3){
+                                                    String msg = joinString(2, cmd);
+                                                    System.out.println(msg);
+                                                    ArrayList<Grup> grup = response.body().getResult();
+                                                    for (Grup aGrup : grup) {
+                                                        pushMessage(aGrup.getId_grup_line(), msg);
+                                                    }
+                                                } else {
+                                                    replyToUser(replyToken, "Penggunaan: /kirimpesan <namaDivisi> <pesan>");
                                                 }
                                             } else {
-                                                replyToUser(replyToken, "Penggunaan: /kirimpesan <namaDivisi> <pesan>");
+                                                replyToUser(replyToken, response.body().getMessage());
                                             }
-                                        } else {
-                                            replyToUser(replyToken, response.body().getMessage());
                                         }
-                                    } catch (IOException e) {
-                                        e.printStackTrace();
-                                    }
+
+                                        @Override
+                                        public void onFailure(Call<GrupResponse> call, Throwable t) {
+
+                                        }
+                                    });
                                 } else {
                                     replyToUser(replyToken, "Penggunaan: /kirimpesan <namaDivisi> <pesan>");
                                 }

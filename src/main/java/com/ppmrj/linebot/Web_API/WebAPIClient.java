@@ -4,7 +4,10 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import okhttp3.OkHttpClient;
+import okhttp3.logging.HttpLoggingInterceptor;
+import org.springframework.http.converter.json.GsonFactoryBean;
 import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
 import retrofit2.converter.jackson.JacksonConverterFactory;
 
 import java.util.concurrent.TimeUnit;
@@ -12,7 +15,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * Created by Asus on 10/14/2017.
  */
-public class WebAPIBuilder {
+public class WebAPIClient {
     public static final String API_BASE_URL = "http://api.ppmrjbandung.com/";
     public static final long DEFAULT_CONNECT_TIMEOUT = 10_000;
     public static final long DEFAULT_READ_TIMEOUT = 10_000;
@@ -25,21 +28,39 @@ public class WebAPIBuilder {
 
     private OkHttpClient.Builder okHttpClientBuilder;
     private Retrofit.Builder retrofitBuilder;
+    private static Retrofit retrofit = null;
 
-    public static WebAPIBuilder create(){
-        return new WebAPIBuilder();
+    public static WebAPIClient create(){
+        return new WebAPIClient();
     }
 
-    public WebAPIBuilder(){
+    public WebAPIClient(){
 
     }
 
-    public WebAPIBuilder okHttpClientBuilder(OkHttpClient.Builder okHttpClientBuilder) {
+    public static Retrofit getClient() {
+
+        HttpLoggingInterceptor interceptor = new HttpLoggingInterceptor();
+        interceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
+        OkHttpClient client = new OkHttpClient.Builder().addInterceptor(interceptor).build();
+
+
+        retrofit = new Retrofit.Builder()
+                .baseUrl(API_BASE_URL)
+                .addConverterFactory(GsonConverterFactory.create())
+                .client(client)
+                .build();
+
+        return retrofit;
+    }
+
+
+    public WebAPIClient okHttpClientBuilder(OkHttpClient.Builder okHttpClientBuilder) {
         this.okHttpClientBuilder = okHttpClientBuilder;
         return this;
     }
 
-    public WebAPIBuilder retrofitBuilder(Retrofit.Builder retrofitBuilder) {
+    public WebAPIClient retrofitBuilder(Retrofit.Builder retrofitBuilder) {
         this.retrofitBuilder = retrofitBuilder;
         return this;
     }
