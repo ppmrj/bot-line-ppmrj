@@ -7,7 +7,7 @@ import retrofit2.http.*;
 
 public interface WebAPI {
 
-    @POST("group/{nama}")
+    @POST("grup/{nama}")
     Call<GroupResponse> registerGroup(@Path("nama") String nama, @Body Group group);
 
     @GET("grup/{id}")
