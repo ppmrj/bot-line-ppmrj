@@ -160,7 +160,7 @@ public class LineBotController
                                 "Dibuat oleh Divisi IT PPM RJ.");
                     }
 
-                    if (currentGroup.getId_grup_line() != null) {
+                    if (currentGroup != null) {
                         if (currentGroup.getStatus_game().equalsIgnoreCase("enabled")) {
                             if (msgText.equalsIgnoreCase("/listgame")) {
                                 StringBuilder listGame = new StringBuilder();
