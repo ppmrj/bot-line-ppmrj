@@ -34,7 +34,7 @@ public class WebAPIBuilder {
 
     }
 
-    public WebAPIBuilder okHttpClientBuilder(OkHttpClient.Builder okHttpClientBuilder) {
+    public WebAPIBuilder okHttpClientBuilder(@OkHttpClient.Builder okHttpClientBuilder) {
         this.okHttpClientBuilder = okHttpClientBuilder;
         return this;
     }

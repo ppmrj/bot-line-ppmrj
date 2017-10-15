@@ -473,7 +473,7 @@ public class LineBotController
                                                     .build()
                                                     .registerGroup(grup)
                                                     .execute();
-                                            System.out.println(response.body());
+                                            System.out.println(response.toString());
                                             if(response.body().isSuccess()){
                                                 replyToUser(replyToken, "Sukses mendaftarkan grup ini sebagai grup divisi "+nama_divisi+".");
                                             } else {
@@ -494,7 +494,7 @@ public class LineBotController
                                                     .build()
                                                     .addDivisi(nama_divisi)
                                                     .execute();
-                                            System.out.println(response.body());
+                                            System.out.println(response.toString());
                                             if(response.body().isSuccess()){
                                                 replyToUser(replyToken, "Sukses mendaftarkan divisi "+nama_divisi+" kedalam database.");
                                             } else {
@@ -527,6 +527,7 @@ public class LineBotController
                                         if(response.body().isSuccess()){
                                             if(cmd.length > 3){
                                                 String msg = joinString(2, cmd);
+                                                System.out.println(msg);
                                                 ArrayList<Grup> grup = response.body().getResult();
                                                 for (Grup aGrup : grup) {
                                                     pushMessage(aGrup.getId_grup_line(), msg);
