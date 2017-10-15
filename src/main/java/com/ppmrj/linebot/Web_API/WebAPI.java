@@ -7,7 +7,7 @@ import retrofit2.http.*;
 
 public interface WebAPI {
 
-    @POST("grup/")
+    @POST("grup")
     Call<GrupResponse> registerGroup(@Body Grup grup);
 
     @GET("grup/{id}")
@@ -16,7 +16,7 @@ public interface WebAPI {
     @DELETE("grup/{id}")
     Call<GrupResponse> unregisterGrup(@Path("id") String id);
 
-    @POST("divisi/")
+    @POST("divisi")
     Call<DivisiResponse> addDivisi(@Body String nama);
 
     @GET("divisi/{nama}/grup")
