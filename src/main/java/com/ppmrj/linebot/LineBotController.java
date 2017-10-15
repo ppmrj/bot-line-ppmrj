@@ -150,7 +150,7 @@ public class LineBotController
                                 if (command.equalsIgnoreCase("grup")) {
                                     if (cmd.length == 3) {
                                         String nama_divisi = cmd[2];
-                                        Group group = new Group(groupid, "Group " + nama_divisi, "disabled", "none");
+                                        Group group = new Group(groupid, "Group " + nama_divisi, "disabled", "none", nama_divisi);
                                         Call<GroupResponse> call = webAPI.registerGroup(nama_divisi, group);
                                         call.enqueue(new Callback<GroupResponse>() {
                                             @Override
