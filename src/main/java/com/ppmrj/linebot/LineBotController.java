@@ -466,12 +466,14 @@ public class LineBotController
                                 if(command.equalsIgnoreCase("grup")){
                                     if(cmd.length == 3){
                                         String nama_divisi = cmd[2];
+                                        Grup grup = new Grup(groupid, "Grup "+nama_divisi, "disabled", "none");
                                         try {
                                             Response<GrupResponse> response = WebAPIBuilder
                                                     .create()
                                                     .build()
-                                                    .registerGroup(nama_divisi, groupid, "Grup "+nama_divisi, "disabled", "none")
+                                                    .registerGroup(grup)
                                                     .execute();
+                                            System.out.println(response.body());
                                             if(response.body().isSuccess()){
                                                 replyToUser(replyToken, "Sukses mendaftarkan grup ini sebagai grup divisi "+nama_divisi+".");
                                             } else {
@@ -492,6 +494,7 @@ public class LineBotController
                                                     .build()
                                                     .addDivisi(nama_divisi)
                                                     .execute();
+                                            System.out.println(response.body());
                                             if(response.body().isSuccess()){
                                                 replyToUser(replyToken, "Sukses mendaftarkan divisi "+nama_divisi+" kedalam database.");
                                             } else {
@@ -531,6 +534,8 @@ public class LineBotController
                                             } else {
                                                 replyToUser(replyToken, "Penggunaan: /kirimpesan <namaDivisi> <pesan>");
                                             }
+                                        } else {
+                                            replyToUser(replyToken, response.body().getMessage());
                                         }
                                     } catch (IOException e) {
                                         e.printStackTrace();

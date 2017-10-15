@@ -8,6 +8,13 @@ public class Grup {
     private String tipe_grup;
     private int id_divisi;
 
+    public Grup(String id_grup_line, String nama, String status_game, String tipe_grup) {
+        this.id_grup_line = id_grup_line;
+        this.nama = nama;
+        this.status_game = status_game;
+        this.tipe_grup = tipe_grup;
+    }
+
     public Grup(int id, String id_grup_line, String nama, String status_game, String tipe_grup, int id_divisi) {
         this.id = id;
         this.id_grup_line = id_grup_line;
