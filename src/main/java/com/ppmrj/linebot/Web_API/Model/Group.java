@@ -11,11 +11,12 @@ public class Group {
     private int id_divisi;
     private String divisi;
 
-    public Group(String id_grup_line, String nama, String status_game, String tipe_grup) {
+    public Group(String id_grup_line, String nama, String status_game, String tipe_grup, String divisi) {
         this.id_grup_line = id_grup_line;
         this.nama = nama;
         this.status_game = status_game;
         this.tipe_grup = tipe_grup;
+        this.divisi = divisi;
     }
 
     public Group(

@@ -232,37 +232,34 @@ public class LineBotController
                                         public void onResponse(Call<SingleGroupResponse> call, Response<SingleGroupResponse> response) {
                                             SingleGroupResponse sgr = response.body();
                                             Group group = new Group(sgr.getId(), sgr.getId_grup_line(), sgr.getNama(), sgr.getStatus_game(), sgr.getTipe_grup(), sgr.getId_divisi(), sgr.getDivisi());
-                                            if (group != null) {
-                                                String nama_divisi = cmd[1];
-                                                Call<GroupResponse> getDivisiGroup = webAPI.getDivisiGrup(nama_divisi);
-                                                getDivisiGroup.enqueue(new Callback<GroupResponse>() {
-                                                    @Override
-                                                    public void onResponse(Call<GroupResponse> call, Response<GroupResponse> response) {
-                                                        if (response.body().isSuccess()) {
-                                                            if (cmd.length >= 3) {
-                                                                String msg = joinString(2, cmd);
-                                                                System.out.println(msg);
-                                                                ArrayList<Group> groupList = response.body().getResult();
-                                                                for (Group aGroup : groupList) {
-                                                                    pushMessage(aGroup.getId_grup_line(), msg + " - Dari: " + group.getDivisi());
-                                                                }
-                                                                replyToUser(replyToken, "Saya telah mengirim pesan ke seluruh group divisi " + nama_divisi + ".\nDivisi " + nama_divisi + " memiliki jumlah group: " + groupList.size());
-                                                            } else {
-                                                                replyToUser(replyToken, "Penggunaan: /kirimpesan <namaDivisi> <pesan>");
+                                            System.out.println(group.getDivisi());
+                                            String nama_divisi = cmd[1];
+                                            Call<GroupResponse> getDivisiGroup = webAPI.getDivisiGrup(nama_divisi);
+                                            getDivisiGroup.enqueue(new Callback<GroupResponse>() {
+                                                @Override
+                                                public void onResponse(Call<GroupResponse> call, Response<GroupResponse> response) {
+                                                    if (response.body().isSuccess()) {
+                                                        if (cmd.length >= 3) {
+                                                            String msg = joinString(2, cmd);
+                                                            System.out.println(msg);
+                                                            ArrayList<Group> groupList = response.body().getResult();
+                                                            for (Group aGroup : groupList) {
+                                                                pushMessage(aGroup.getId_grup_line(), msg + "- Dari: " + group.getDivisi());
                                                             }
+                                                            replyToUser(replyToken, "Saya telah mengirim pesan ke seluruh group divisi " + nama_divisi + ".\nDivisi " + nama_divisi + " memiliki jumlah group: " + groupList.size());
                                                         } else {
-                                                            replyToUser(replyToken, response.body().getMessage());
+                                                            replyToUser(replyToken, "Penggunaan: /kirimpesan <namaDivisi> <pesan>");
                                                         }
+                                                    } else {
+                                                        replyToUser(replyToken, response.body().getMessage());
                                                     }
+                                                }
 
-                                                    @Override
-                                                    public void onFailure(Call<GroupResponse> call, Throwable t) {
-                                                        t.printStackTrace();
-                                                    }
-                                                });
-                                            } else {
-                                                replyToUser(replyToken, "Game ini belum terdaftar kedalam database, silahkan daftarkan group dulu ke database dengan /register.");
-                                            }
+                                                @Override
+                                                public void onFailure(Call<GroupResponse> call, Throwable t) {
+                                                    t.printStackTrace();
+                                                }
+                                            });
                                         }
 
                                         @Override
